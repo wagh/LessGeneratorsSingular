@@ -92,9 +92,9 @@ matrix CBRow[1][nrows(m)] = CauchyBinetRow(m);
 matrix B[nrows(m)][nrows(m)] = transpose((concat(transpose(ltInv),transpose(CBRow))));
 
 ///////////////////////////////////////
-// Given a unimodular matrix A, this first computes the left inverse
-// of A, then completes it to a squre matrix and then right inverse of
-// this is precisely the completion of A.
+// Given a (column) unimodular matrix A, this first computes the left inverse
+// of A, then completes it to a square matrix and then right inverse of
+// this is precisely the column completion of A.
 ///////////////////////////////////////
 matrix uni_completion = rightInverse(B);
 
