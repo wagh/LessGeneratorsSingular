@@ -1,0 +1,25 @@
+ring R = 0,(x,y,z),dp;
+poly f = 3x2y2+3xy2+12;
+poly g = 3x2y2+3xy2+11;
+
+matrix M = sparsematrix(4,7,1,1,0);
+M[1,6]=f;
+M[2,6]=g;
+print(M);
+"===========";
+"";
+
+
+list l = scan_coprime(M);
+// "l=",l;
+if (l[1]<>0)
+{
+    matrix W = row_completion_for_coprime_pair(M,l[1],l[2],l[3]);
+    print(W);
+    "";
+    "----------";
+}
+else
+{
+    "There is no row which contains coprime elements.";
+}

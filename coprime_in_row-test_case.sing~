@@ -1,4 +1,6 @@
-LIB "control.lib";
+// LIB "control.lib";
+
+< "Cauchy-Binet.sing";
 
 ///////////////////////////////////////
 // Assumption: two elements in a row are coprime 
@@ -25,7 +27,7 @@ proc row_completion_for_coprime_pair(matrix M, int i, int j, int k)
         "Wrong input";
         return(0);
     }
-
+    // matrix M [1][2] = V[i],V[j];
     int m = nrows(M);
     int n = ncols(M);
     
@@ -41,6 +43,10 @@ proc row_completion_for_coprime_pair(matrix M, int i, int j, int k)
     // W[k,j] = -M[k,i];
     // W[k,k] = M[j,i];
 
+    // print(W*M);
+    // "-----------------------";
+    // "";
+    
     int s,t;
     matrix newMat[m-1][n-1];
 
@@ -118,3 +124,28 @@ proc scan_coprime(matrix M)
     return(0);
 }
 
+ring R = 0,(x,y,z),dp;
+poly f = 3x2y2+3xy2+12;
+poly g = 3x2y2+3xy2+11;
+
+matrix M = sparsematrix(4,7,1,1,0);
+M[1,6]=f;
+M[2,6]=g;
+print(M);
+"===========";
+"";
+
+
+list l = scan_coprime(M);
+// "l=",l;
+if (l[1]<>0)
+{
+    matrix W = row_completion_for_coprime_pair(M,l[1],l[2],l[3]);
+    print(W);
+    "";
+    "----------";
+}
+else
+{
+    "There is no row which contains coprime elements.";
+}
