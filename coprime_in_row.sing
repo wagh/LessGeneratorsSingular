@@ -8,8 +8,14 @@
 // Input: mxn matrix containing these coprime elements at [j,i] and
 // [k,i] positions.
 //
-// Returns a matrix W such that in the product WM, the [j,i] entry is
-// 1 and [k,i] entry is 0.
+// ////////////////////////////
+// // Returns a matrix W such that in the product WM, the [j,i] entry is
+// // 1 and [k,i] entry is 0.
+// ////////////////////////////
+//
+// Changed return matrix. Now it returns the product WM whose [j,i]
+// entry is 1 and [k,i] entry is 0. And then i-th column is deleted
+// and other columns are adjusted with appropriate column operation.
 ///////////////////////////////////////
 proc row_completion_for_coprime_pair(matrix M, int i, int j, int k)
 {
@@ -26,12 +32,16 @@ proc row_completion_for_coprime_pair(matrix M, int i, int j, int k)
     int n = ncols(M);
     
     matrix rtInv = rightInverse(module(M[j,i],M[k,i])); 
+
+    ////////////////////////////
+    // No need to compute matrix W now.
+    ////////////////////////////
     // W = dsum(W,unitmat(n-2));
-    matrix W = unitmat(m);
-    W[j,j] = rtInv[1,1];
-    W[j,k] = rtInv[2,1];
-    W[k,j] = -M[k,i];
-    W[k,k] = M[j,i];
+    // matrix W = unitmat(m);
+    // W[j,j] = rtInv[1,1];
+    // W[j,k] = rtInv[2,1];
+    // W[k,j] = -M[k,i];
+    // W[k,k] = M[j,i];
 
     // print(W*M);
     // "-----------------------";
@@ -39,89 +49,44 @@ proc row_completion_for_coprime_pair(matrix M, int i, int j, int k)
     
     int s,t;
     matrix newMat[m-1][n-1];
-    // "newMat",size_Matrix(newMat);
-    // "W*M",size_Matrix(W*M);
-    // "M",size_Matrix(M);
-    // "W",size_Matrix(W);
-    
-    
-    // for (s=1;s<=n;s++)
-    // {
-    //     if ( s< i )
-    //     {
-    //         for (t=1;t<=n;t++)
-    //         {
-    //             if ( t<j )
-    //             {
-    //                 s,t;
-    //                 newMat[t,s] = M[t,s] - M[j,s]*M[t,i];
-    //             }
-    //             else
-    //             {
-    //                 if ( t>j )
-    //                 {
-    //                     s,t;
-    //                     newMat[t-1,s] = M[t,s] - M[j,s]*M[t,i];
-    //                 }
-    //             }
-    //         }
-    //     }
-    //     else
-    //     {
-    //         if ( s>i )
-    //         {
-    //             for (t=1;t<=n;t++)
-    //             {
-                    
-    //                 if ( t<j )
-    //                 {
-    //                     s,t;
-    //                     newMat[t,s-1] = M[t,s] - M[j,s]*M[t,i];
-    //                 }
-    //                 else 
-    //                 {
-    //                     if ( t>j )
-    //                     {
-    //                         s,t,j,i,"Here";
-    //                             // s,t;
-    //                             //newMat[t-1,s-1] = 
-    //                         M[t,s];// - M[j,s]*M[t,i];
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
-
 
     for (s=1;s<=n;s++)
     {
         if (s<i)
         {
-            for(t=1;t<=m,t<>j;t++)
+            for(t=1;t<=m;t++)
             {
                 if (t<j)
                 {
                     newMat[t,s] = M[t,s] - M[t,i]*M[j,s];
                 }
-                if (t>j)
+                else
                 {
-                    newMat[t-1,s] = M[t,s] - M[t,i]*M[j,s];
-                }                    
+                    if (t>j)
+                    {
+                        newMat[t-1,s] = M[t,s] - M[t,i]*M[j,s];
+                    }        
+                }
             }
         }
-        if (s>i)
+        else
         {
-            for(t=1;t<=m,t<>j;t++)
+            if (s>i)
             {
-                if (t<j)
+                for(t=1;t<=m;t++)
                 {
-                    newMat[t,s-1] = M[t,s] - M[t,i]*M[j,s];
+                    if (t<j)
+                    {
+                        newMat[t,s-1] = M[t,s] - M[t,i]*M[j,s];
+                    }
+                    else
+                    {
+                        if (t>j)
+                        {
+                            newMat[t-1,s-1] = M[t,s] - M[t,i]*M[j,s];
+                        }        
+                    }
                 }
-                if (t>j)
-                {
-                    newMat[t-1,s-1] = M[t,s] - M[t,i]*M[j,s];
-                }                    
             }
         }
     }
@@ -163,9 +128,9 @@ ring R = 0,(x,y,z),dp;
 poly f = 3x2y2+3xy2+12;
 poly g = 3x2y2+3xy2+11;
 
-matrix M = sparsematrix(4,5,1);
-M[1,1]=f;
-M[3,1]=g;
+matrix M = sparsematrix(4,7,1,1,0);
+M[1,6]=f;
+M[2,6]=g;
 print(M);
 "===========";
 "";
@@ -179,8 +144,6 @@ if (l[1]<>0)
     print(W);
     "";
     "----------";
-        // print(rm_unitcol(W*M));
-    "";
 }
 else
 {
