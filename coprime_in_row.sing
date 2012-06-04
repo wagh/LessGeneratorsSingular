@@ -1,4 +1,6 @@
-LIB "control.lib";
+// LIB "control.lib";
+
+< "Cauchy-Binet.sing";
 
 ///////////////////////////////////////
 // Assumption: two elements in a row are coprime 
@@ -31,58 +33,98 @@ proc row_completion_for_coprime_pair(matrix M, int i, int j, int k)
     W[k,j] = -M[k,i];
     W[k,k] = M[j,i];
 
-    print(W*M);
-    "-----------------------";
-    "";
+    // print(W*M);
+    // "-----------------------";
+    // "";
     
     int s,t;
     matrix newMat[m-1][n-1];
+    // "newMat",size_Matrix(newMat);
+    // "W*M",size_Matrix(W*M);
+    // "M",size_Matrix(M);
+    // "W",size_Matrix(W);
     
+    
+    // for (s=1;s<=n;s++)
+    // {
+    //     if ( s< i )
+    //     {
+    //         for (t=1;t<=n;t++)
+    //         {
+    //             if ( t<j )
+    //             {
+    //                 s,t;
+    //                 newMat[t,s] = M[t,s] - M[j,s]*M[t,i];
+    //             }
+    //             else
+    //             {
+    //                 if ( t>j )
+    //                 {
+    //                     s,t;
+    //                     newMat[t-1,s] = M[t,s] - M[j,s]*M[t,i];
+    //                 }
+    //             }
+    //         }
+    //     }
+    //     else
+    //     {
+    //         if ( s>i )
+    //         {
+    //             for (t=1;t<=n;t++)
+    //             {
+                    
+    //                 if ( t<j )
+    //                 {
+    //                     s,t;
+    //                     newMat[t,s-1] = M[t,s] - M[j,s]*M[t,i];
+    //                 }
+    //                 else 
+    //                 {
+    //                     if ( t>j )
+    //                     {
+    //                         s,t,j,i,"Here";
+    //                             // s,t;
+    //                             //newMat[t-1,s-1] = 
+    //                         M[t,s];// - M[j,s]*M[t,i];
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
+
+
     for (s=1;s<=n;s++)
     {
-        if ( s< i )
+        if (s<i)
         {
-            for (t=1;t<=n;t++)
+            for(t=1;t<=m,t<>j;t++)
             {
-                if ( t<j )
+                if (t<j)
                 {
-                    s,t;
-                    newMat[s,t] = M[t,s] - M[j,s]*M[t,i];
+                    newMat[t,s] = M[t,s] - M[t,i]*M[j,s];
                 }
-                else
+                if (t>j)
                 {
-                    if ( t>j )
-                    {
-                        s,t;
-                        newMat[s,t-1] = M[t,s] - M[j,s]*M[t,i];
-                    }
-                }
+                    newMat[t-1,s] = M[t,s] - M[t,i]*M[j,s];
+                }                    
             }
         }
-        else
+        if (s>i)
         {
-            if ( s>i )
+            for(t=1;t<=m,t<>j;t++)
             {
-                for (t=1;t<=n;t++)
+                if (t<j)
                 {
-                    if ( t<j )
-                    {
-                        s,t;
-                        newMat[s-1,t] = M[t,s] - M[j,s]*M[t,i];
-                    }
-                    else 
-                    {
-                        if ( t<j )
-                        {
-                            s,t;
-                            newMat[s-1,t-1] = M[t,s] - M[j,s]*M[t,i];
-                        }
-                    }
+                    newMat[t,s-1] = M[t,s] - M[t,i]*M[j,s];
                 }
+                if (t>j)
+                {
+                    newMat[t-1,s-1] = M[t,s] - M[t,i]*M[j,s];
+                }                    
             }
         }
     }
-        
     return(newMat);
 }
 
