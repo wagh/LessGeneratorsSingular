@@ -1,0 +1,127 @@
+LIB "control.lib";
+
+proc get_unit_pos(matrix M)
+{
+    int m = nrows(M);
+    int n = ncols(M);
+
+        // Return intvec [i,j] such that M[i,j]=1
+    int i,j;
+    string s = charstr(basering);
+    matrix ltInv[1][1];
+
+    if (find("integer",s) == 0)
+    {
+        for (i=1;i<=m;i++)
+        {
+            for (j=1;j<=n;j++)
+            {
+                ltInv = leftInverse(M[i,j]);
+                if ((ltInv) <> 0)
+                {
+                    return(i,j);
+                }
+            }
+        }
+        "The matrix does not contain an invertible element";
+        return(0);
+    }
+    else
+    {
+        for (i=1;i<=m;i++)
+        {
+            for (j=1;j<=n;j++)
+            {
+                if ((M[i,j] == 1) || (M[i,j] == -1))
+                {
+                    return(i,j);
+                }
+            }
+        }        
+        "The matrix does not contain an invertible element";
+        return(0);
+    }
+}
+
+
+/////////////////////////////////////
+// Does a cleanup of the given matrix
+//
+// INPUT: mxn matrix with at least one entry 1
+//
+// OUTPUT: Two matrices of size (m-1)x(n-1) matrix or smaller. 
+//
+/////////////////////////////////////
+proc cleanup(matrix M, int p, int q)
+{
+    int m = nrows(M);
+    int n = ncols(M);
+    int i,j;
+    matrix MM = M;
+
+    for (i=1;i<=m;i++)
+    {
+        for (j=1;j<=n;j++)
+        {
+                MM[i,j] = MM[i,j]-M[i,q]*M[p,j];            
+        }
+    }
+    
+    return(transpose(compress(transpose(compress(MM)))));
+}
+
+proc complete_cleanup(matrix M)
+{
+    list ij;
+    int p,q;
+    
+    while(IS_CLEAN<>1)
+    {
+        ij = get_unit_pos(M);
+        if (size(ij) == 1)
+        {
+            "No cleanup possible";
+            "Returning the original matrix";
+            IS_CLEAN=1;
+            return(M);
+        }
+        p = ij[1];
+        q = ij[2];
+        M = cleanup(M,p,q);
+    }
+}
+
+
+optio(prot);
+TRACE=1;
+
+
+ring R = 0,(x,y,z),dp;
+matrix M = sparsematrix(6,10,1);
+int IS_CLEAN=0;                 // Global variable which tells whether
+                                // the matrix is clean or not.
+
+// M = dsum(1,M);
+// M = y, x2,   zy, x,9y+6z,
+//     1, x+y,37,y,3y+2z, 
+//     9x,5xz,   xy, z,7z;
+
+M = 
+    0,  73y+72,0,         0,    0,      0,     0,      72x+79z,0,      0,      
+    0,  0,     0,         89z,  0,      0,     0,      12z,    87,     96y,    
+    39x,0,     0,         54z+6,9,      0,     0,      0,      93y+92z,32x+38y,
+    0,  26y,   0,         0,    45y+77z,28x,   84,     0,      0,      18,     
+    0,  0,     28x+24y+26,24,   0,      71y+10,53x+62z,0,      0,      0,      
+    0,  0,     7y,        0,    10x,    0,     0,      0,      0,      3y+10z ;
+
+print(M);
+
+
+matrix cleanMat = complete_cleanup(M);
+"--------------";
+// matrix clean1 = cleanup(cleanMat));
+print(cleanMat);
+
+
+
+    
