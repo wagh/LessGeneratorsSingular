@@ -23,7 +23,7 @@ proc get_unit_pos(matrix M)
                 }
             }
         }
-        "The matrix does not contain an invertible element";
+        // "The matrix does not contain an invertible element";
         return(0);
     }
     else
@@ -38,7 +38,7 @@ proc get_unit_pos(matrix M)
                 }
             }
         }        
-        "The matrix does not contain an invertible element";
+        // "The matrix does not contain an invertible element";
         return(0);
     }
 }
@@ -103,6 +103,14 @@ proc cleanup(matrix M, int p, int q)
 //
 // Warning 2: In case of any change in the output format, inform
 // Mohamed IMMEDIATELY. The GAP code depends on this output.
+//
+// Warning 3: Suppose at some iteration M is just a column matrix and
+// get_uni_pos returns nontrivial answer, then this proc returns a
+// string "The output is an empty matrix." BE CAREFUL WHILE CALLING
+// THIS PROC.
+//
+// The worst case example: try to cleanup a matrix with all entries to
+// be unit.
 /////////////////////////////////////
 proc complete_cleanup(matrix M)
 {
@@ -110,28 +118,30 @@ proc complete_cleanup(matrix M)
     int p,q;
     int IS_CLEAN=0;
     list lst_rows_deleted;
-    
 
     while(IS_CLEAN<>1)
     {
         ij = get_unit_pos(M);
         if (size(ij) == 1)
         {
-            "No cleanup possible";
-            "Returning the original matrix";
+            // "No cleanup possible";
+            // "Returning the original matrix";
             IS_CLEAN=1;
             return(M,lst_rows_deleted);
+        }
+        if (nrows(M)==1 || ncols(M)==1)
+        {
+            return("The output is an empty matrix.");
         }
         p = ij[1];
         q = ij[2];
         lst_rows_deleted[size(lst_rows_deleted)+1] = p;
         M = cleanup(M,p,q);
-        
     }
 }
 
 
-
+/////////////////////////////////////
 // This proc gives the isomorphism matrix by deleting the
 // corresponding columns from the identity matrix. The list
 // lst_rows_deleted tells (sequentially) which columns are to be
@@ -140,6 +150,10 @@ proc complete_cleanup(matrix M)
 // then delete lst_rows_deleted[2] column from the result and so on.
 // The second parameter n is the number of columns of the original
 // matrix.
+//
+// Warning: Should not be called if cleanup has returned an empty
+// matrix. In that case isomorphism matrix is also an empty matrix.
+/////////////////////////////////////
 proc isomorphism_matrix(list lst_rows_deleted, int n)
 {
     matrix M = unitmat(n);
@@ -149,14 +163,14 @@ proc isomorphism_matrix(list lst_rows_deleted, int n)
 
     for (i=1;i<=size(lst_rows_deleted);i++)
     {
-        v = 1..ncols(M);
+        v = 1..nrows(M);
         l = list(v[1..size(v)]);
         l = delete(l,lst_rows_deleted[i]);
         for (j=1;j<=size(l);j++)
         {
             w[j]=l[j];
         }
-        M = submat(M,w,1..nrows(M));
+        M = submat(M,w,1..ncols(M));
         w=0;
         v=0;
     }
@@ -177,24 +191,28 @@ matrix M = sparsematrix(6,10,1);
 //     1, x+y,37,y,3y+2z, 
 //     9x,5xz,   xy, z,7z;
 
-M = 
-    0,  73y+72,0,         0,    0,      0,     0,      72x+79z,0,      0,      
-    0,  0,     0,         89z,  0,      0,     0,      12z,    87,     96y,    
-    39x,0,     0,         54z+6,9,      0,     0,      0,      93y+92z,32x+38y,
-    0,  26y,   0,         0,    45y+77z,28x,   84,     0,      0,      18,     
-    0,  0,     28x+24y+26,24,   0,      71y+10,53x+62z,0,      0,      0,      
-    0,  0,     7y,        0,    10x,    0,     0,      0,      0,      3y+10z ;
+// M = 
+//     0,  73y+72,0,         0,    0,      0,     0,      72x+79z,0,      0,      
+//     0,  0,     0,         89z,  0,      0,     0,      12z,    87,     96y,    
+//     39x,0,     0,         54z+6,9,      0,     0,      0,      93y+92z,32x+38y,
+//     0,  26y,   0,         0,    45y+77z,28x,   84,     0,      0,      18,     
+//     0,  0,     28x+24y+26,24,   0,      71y+10,53x+62z,0,      0,      0,      
+//     0,  0,     7y,        0,    10x,    0,     0,      0,      0,      3y+10z ;
+
+matrix M[4][3] = 5,2,6,78,3,2,6,4,3,345,45,12;
 
 print(M);
-
-
+"";
 list cleanMat_list = complete_cleanup(M);
-"--------------";
-// matrix clean1 = cleanup(cleanMat));
-matrix cleanMat = cleanMat_list[1];
-list lst_rows_deleted = cleanMat_list[2];
-cleanMat;
-"-------------------";
-lst_rows_deleted;
-"-------------------";
-print(isomorphism_matrix(lst_rows_deleted,ncols(M)));
+if (size(cleanMat_list) <> 1)
+{    
+    matrix cleanMat = cleanMat_list[1];
+    list lst_rows_deleted = cleanMat_list[2];
+    cleanMat;
+    "-------------------";
+    lst_rows_deleted;
+    "-------------------";
+    matrix alpha = isomorphism_matrix(lst_rows_deleted,ncols(M));
+    print(alpha);    
+}
+
