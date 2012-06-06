@@ -49,7 +49,7 @@ proc get_unit_pos(matrix M)
 //
 // INPUT: mxn matrix with at least one entry 1
 //
-// OUTPUT: Two matrices of size (m-1)x(n-1) matrix or smaller. 
+// OUTPUT: matrix of size (m-1)x(n-1) or smaller. 
 //
 /////////////////////////////////////
 proc cleanup(matrix M, int p, int q)
@@ -57,24 +57,43 @@ proc cleanup(matrix M, int p, int q)
     int m = nrows(M);
     int n = ncols(M);
     int i,j;
-    matrix MM = M;
+    matrix MM[m-1][n-1];
+    list tmp_list;
+    intvec tmp_vec,r,c;
 
-    for (i=1;i<=m;i++)
+    tmp_vec = 1..m;
+    tmp_list = list(tmp_vec[1..size(tmp_vec)]);
+    tmp_list = delete(tmp_list,p);
+
+    for (i=1;i<=size(tmp_list);i++)
     {
-        for (j=1;j<=n;j++)
-        {
-                MM[i,j] = MM[i,j]-M[i,q]*M[p,j];            
-        }
+        r[i]=tmp_list[i];
+    }
+
+    tmp_vec = 1..n;
+    tmp_list = list(tmp_vec[1..size(tmp_vec)]);
+    tmp_list = delete(tmp_list,q);
+
+    for (i=1;i<=size(tmp_list);i++)
+    {
+        c[i]=tmp_list[i];
     }
     
-    return(transpose(compress(transpose(compress(MM)))));
+    matrix pivotCol[m-1][1] = submat(M,r,q)*1/M[p,q];
+    matrix pivotRow[1][n-1] = submat(M,p,c);
+    
+    MM = submat(M,r,c) - pivotCol*pivotRow;
+    return(MM);    
 }
 
 proc complete_cleanup(matrix M)
 {
     list ij;
     int p,q;
+    int IS_CLEAN=0;
+    list lst_rows_deleted;
     
+
     while(IS_CLEAN<>1)
     {
         ij = get_unit_pos(M);
@@ -83,23 +102,57 @@ proc complete_cleanup(matrix M)
             "No cleanup possible";
             "Returning the original matrix";
             IS_CLEAN=1;
-            return(M);
+            return(M,lst_rows_deleted);
         }
         p = ij[1];
         q = ij[2];
+        lst_rows_deleted[size(lst_rows_deleted)+1] = p;
         M = cleanup(M,p,q);
+        
     }
 }
 
 
-optio(prot);
-TRACE=1;
+
+// This proc gives the isomorphism matrix by deleting the
+// corresponding columns from the identity matrix. The list
+// lst_rows_deleted tells (sequentially) which columns are to be
+// deleted.  Warning: The above list may contain repeated number. It
+// just means that first you delete lst_rows_deleted[1] column from I,
+// then delete lst_rows_deleted[2] column from the result and so on.
+// The second parameter n is the number of columns of the original
+// matrix.
+proc isomorphism_matrix(list lst_rows_deleted, int n)
+{
+    matrix M = unitmat(n);
+    int i,j;
+    list l;
+    intvec v,w;
+
+    for (i=1;i<=size(lst_rows_deleted);i++)
+    {
+        v = 1..ncols(M);
+        l = list(v[1..size(v)]);
+        l = delete(l,lst_rows_deleted[i]);
+        for (j=1;j<=size(l);j++)
+        {
+            w[j]=l[j];
+        }
+        M = submat(M,1..nrows(M),w);
+        w=0;
+        v=0;
+    }
+    return(M);
+}
+
+
+
+// option(prot);
+// TRACE=1;
 
 
 ring R = 0,(x,y,z),dp;
 matrix M = sparsematrix(6,10,1);
-int IS_CLEAN=0;                 // Global variable which tells whether
-                                // the matrix is clean or not.
 
 // M = dsum(1,M);
 // M = y, x2,   zy, x,9y+6z,
@@ -117,11 +170,66 @@ M =
 print(M);
 
 
-matrix cleanMat = complete_cleanup(M);
+list cleanMat_list = complete_cleanup(M);
 "--------------";
 // matrix clean1 = cleanup(cleanMat));
-print(cleanMat);
+matrix cleanMat = cleanMat_list[1];
+list lst_rows_deleted = cleanMat_list[2];
+cleanMat;
+"-------------------";
+lst_rows_deleted;
+"-------------------";
+print(isomorphism_matrix(lst_rows_deleted,ncols(M)));
 
+
+
+$
 
 
     
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/////////////////////////////////////////////////////
+
+matrix hv_3[6][10] =  0,  73y+72,0,         0,    0,      0,     0,      72x+79z,0,      0,      0,  0,     0,         89z,  0,      0,     0,      12z,    87,     96y,    39x,0,     0,         54z+6,9,      0,     0,      0,      93y+92z,32x+38y,0,  26y,   0,         0,    45y+77z,28x,   84,     0,      0,      18,     0,  0,     28x+24y+26,24,   0,      71y+10,53x+62z,0,      0,      0,      0,  0,     7y,        0,    10x,    0,     0,      0,      0,      3y+10z  ;
+hv_3 = transpose(hv_3);
+
+GetUnitPosition(hv_3, list ( 0 ));
+def hv_5 = hv_3[9,2];
+matrix hv_6 = submat(hv_3,1..10,intvec( 2 ));
+matrix hv_7 = submat(hv_6,intvec( 1, 2, 3, 4, 5, 6, 7, 8, 10 ),1..1);
+hv_i=1;
+hv_j=0;
+for(hv_k=1;hv_k<=9;hv_k=hv_k+1)
+{
+    hv_7[hv_k,hv_i]=hv_7[hv_k,hv_i]/hv_5;
+};
+if(hv_j>0)
+{
+    hv_7[hv_j,hv_i]=1;
+};
+matrix hv_8 = submat(hv_3,1..10,intvec( 1, 3, 4, 5, 6 ));
+matrix hv_9 = submat(hv_8,intvec( 1, 2, 3, 4, 5, 6, 7, 8, 10 ),1..5); // This is MM=submat(M,r,c)
+
+matrix hv_10 = submat(hv_3,intvec( 9 ),1..6);
+matrix hv_11 = submat(hv_10,1..1,intvec( 1, 3, 4, 5, 6 ));
+matrix hv_12 = hv_7*hv_11;
+matrix hv_13 = hv_9-hv_12;
