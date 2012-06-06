@@ -101,6 +101,8 @@ proc cleanup(matrix M, int p, int q)
 // matrix, then delete lst_rows_deleted[2] column from the resulting
 // matrix and so on.
 //
+// Warning 2: In case of any change in the output format, inform
+// Mohamed IMMEDIATELY. The GAP code depends on this output.
 /////////////////////////////////////
 proc complete_cleanup(matrix M)
 {
@@ -154,7 +156,7 @@ proc isomorphism_matrix(list lst_rows_deleted, int n)
         {
             w[j]=l[j];
         }
-        M = submat(M,1..nrows(M),w);
+        M = submat(M,w,1..nrows(M));
         w=0;
         v=0;
     }
