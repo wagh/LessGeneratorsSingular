@@ -86,6 +86,22 @@ proc cleanup(matrix M, int p, int q)
     return(MM);    
 }
 
+/////////////////////////////////////
+// Does a iterative cleanup of the given matrix, until there are no
+// units in the matrix.
+//
+// INPUT: mxn matrix with at least one entry 1
+//
+// OUTPUT: A list 
+// 1. cleaned up matrix without any units
+// 2. a list of column numbers which were deleted during the proc. 
+//
+// Warning: The above list may contain repeated numbers. It just means
+// that first you delete lst_rows_deleted[1] column from Identity
+// matrix, then delete lst_rows_deleted[2] column from the resulting
+// matrix and so on.
+//
+/////////////////////////////////////
 proc complete_cleanup(matrix M)
 {
     list ij;
@@ -117,7 +133,7 @@ proc complete_cleanup(matrix M)
 // This proc gives the isomorphism matrix by deleting the
 // corresponding columns from the identity matrix. The list
 // lst_rows_deleted tells (sequentially) which columns are to be
-// deleted.  Warning: The above list may contain repeated number. It
+// deleted.  Warning: The above list may contain repeated numbers. It
 // just means that first you delete lst_rows_deleted[1] column from I,
 // then delete lst_rows_deleted[2] column from the result and so on.
 // The second parameter n is the number of columns of the original
