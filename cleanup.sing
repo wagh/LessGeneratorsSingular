@@ -117,7 +117,7 @@ proc complete_cleanup(matrix M)
     list ij;
     int p,q;
     int IS_CLEAN=0;
-    list lst_rows_deleted;
+    list lst_rows_deleted, lst_cols_deleted;
 
     while(IS_CLEAN<>1)
     {
@@ -127,7 +127,7 @@ proc complete_cleanup(matrix M)
             // "No cleanup possible";
             // "Returning the original matrix";
             IS_CLEAN=1;
-            return(M,lst_rows_deleted);
+            return(M,lst_rows_deleted, lst_cols_deleted);
         }
         if (nrows(M)==1 || ncols(M)==1)
         {
@@ -136,6 +136,7 @@ proc complete_cleanup(matrix M)
         p = ij[1];
         q = ij[2];
         lst_rows_deleted[size(lst_rows_deleted)+1] = p;
+        lst_cols_deleted[size(lst_cols_deleted)+1] = q;
         M = cleanup(M,p,q);
     }
 }
@@ -191,15 +192,15 @@ matrix M = sparsematrix(6,10,1);
 //     1, x+y,37,y,3y+2z, 
 //     9x,5xz,   xy, z,7z;
 
-// M = 
-//     0,  73y+72,0,         0,    0,      0,     0,      72x+79z,0,      0,      
-//     0,  0,     0,         89z,  0,      0,     0,      12z,    87,     96y,    
-//     39x,0,     0,         54z+6,9,      0,     0,      0,      93y+92z,32x+38y,
-//     0,  26y,   0,         0,    45y+77z,28x,   84,     0,      0,      18,     
-//     0,  0,     28x+24y+26,24,   0,      71y+10,53x+62z,0,      0,      0,      
-//     0,  0,     7y,        0,    10x,    0,     0,      0,      0,      3y+10z ;
+M = 
+    0,  73y+72,0,         0,    0,      0,     0,      72x+79z,0,      0,      
+    0,  0,     0,         89z,  0,      0,     0,      12z,    87,     96y,    
+    39x,0,     0,         54z+6,9,      0,     0,      0,      93y+92z,32x+38y,
+    0,  26y,   0,         0,    45y+77z,28x,   84,     0,      0,      18,     
+    0,  0,     28x+24y+26,24,   0,      71y+10,53x+62z,0,      0,      0,      
+    0,  0,     7y,        0,    10x,    0,     0,      0,      0,      3y+10z ;
 
-matrix M[4][3] = 5,2,6,78,3,2,6,4,3,345,45,12;
+// matrix M[4][3] = 5,2,6,78,3,2,6,4,3,345,45,12;
 
 print(M);
 "";
@@ -208,9 +209,12 @@ if (size(cleanMat_list) <> 1)
 {    
     matrix cleanMat = cleanMat_list[1];
     list lst_rows_deleted = cleanMat_list[2];
+    list lst_cols_deleted = cleanMat_list[3];
     cleanMat;
     "-------------------";
     lst_rows_deleted;
+    "-------------------";
+    lst_cols_deleted;
     "-------------------";
     matrix alpha = isomorphism_matrix(lst_rows_deleted,ncols(M));
     print(alpha);    
