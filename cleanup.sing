@@ -117,26 +117,42 @@ proc complete_cleanup(matrix M)
     list ij;
     int p,q;
     int IS_CLEAN=0;
-    list lst_rows_deleted, lst_cols_deleted;
+    list lst_rows_deleted, lst_cols_deleted,lst_row_num_deleted, lst_col_num_deleted;
+    int m,n;
 
     while(IS_CLEAN<>1)
     {
+        m = nrows(M);
+        n = ncols(M);
+    
         ij = get_unit_pos(M);
         if (size(ij) == 1)
         {
             // "No cleanup possible";
             // "Returning the original matrix";
             IS_CLEAN=1;
-            return(M,lst_rows_deleted, lst_cols_deleted);
+            return(M, lst_row_num_deleted, lst_col_num_deleted, lst_rows_deleted, lst_cols_deleted);
         }
-        if (nrows(M)==1 || ncols(M)==1)
+        if (m==1 || n==1)
         {
             return("The output is an empty matrix.");
         }
         p = ij[1];
         q = ij[2];
-        lst_rows_deleted[size(lst_rows_deleted)+1] = p;
-        lst_cols_deleted[size(lst_cols_deleted)+1] = q;
+        lst_row_num_deleted[size(lst_row_num_deleted)+1] = p;
+        lst_col_num_deleted[size(lst_col_num_deleted)+1] = q;
+        lst_rows_deleted[size(lst_rows_deleted)+1] = submat(M,1..m,q);
+        lst_cols_deleted[size(lst_cols_deleted)+1] = submat(M,p,1..n);
+        
+        // "-----------------";
+        // // "M=";
+        // // print(M);
+        // "-----------------";
+        // "q=",q,"The column","m=",m;
+        // print(submat(M,1..m,q));
+        // "p=",p,"The row","n=",n;
+        // print(submat(M,p,1..n));
+        // "";
         M = cleanup(M,p,q);
     }
 }
@@ -155,18 +171,18 @@ proc complete_cleanup(matrix M)
 // Warning: Should not be called if cleanup has returned an empty
 // matrix. In that case isomorphism matrix is also an empty matrix.
 /////////////////////////////////////
-proc isomorphism_matrix(list lst_rows_deleted, int n)
+proc isomorphism_matrix(list lst_row_num_deleted, int n)
 {
     matrix M = unitmat(n);
     int i,j;
     list l;
     intvec v,w;
 
-    for (i=1;i<=size(lst_rows_deleted);i++)
+    for (i=1;i<=size(lst_row_num_deleted);i++)
     {
         v = 1..nrows(M);
         l = list(v[1..size(v)]);
-        l = delete(l,lst_rows_deleted[i]);
+        l = delete(l,lst_row_num_deleted[i]);
         for (j=1;j<=size(l);j++)
         {
             w[j]=l[j];
@@ -208,15 +224,18 @@ list cleanMat_list = complete_cleanup(M);
 if (size(cleanMat_list) <> 1)
 {    
     matrix cleanMat = cleanMat_list[1];
-    list lst_rows_deleted = cleanMat_list[2];
-    list lst_cols_deleted = cleanMat_list[3];
+    list lst_row_num_deleted = cleanMat_list[2];
+    list lst_col_num_deleted = cleanMat_list[3];
+    list lst_rows_deleted = cleanMat_list[4];
+    list lst_cols_deleted = cleanMat_list[5];
+    
     cleanMat;
     "-------------------";
-    lst_rows_deleted;
-    "-------------------";
-    lst_cols_deleted;
-    "-------------------";
-    matrix alpha = isomorphism_matrix(lst_rows_deleted,ncols(M));
-    print(alpha);    
+    // lst_rows_deleted;
+    // "-------------------";
+    // lst_cols_deleted;
+    // "-------------------";
+    matrix alpha = isomorphism_matrix(lst_row_num_deleted,ncols(M));
+    print(alpha);
 }
 
