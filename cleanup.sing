@@ -191,7 +191,7 @@ proc isomorphism_matrix(list lst_row_num_deleted, int n)
         w=0;
         v=0;
     }
-    return(M);
+    return(transpose(M));
 }
 
 
