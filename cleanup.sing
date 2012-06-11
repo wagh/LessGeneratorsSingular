@@ -14,8 +14,10 @@ proc get_unit_pos(matrix M)
         {
             for (j=1;j<=n;j++)
             {
-                ltInv = leftInverse(M[i,j]);
-                if ((ltInv) <> 0)
+                // ltInv = leftInverse(M[i,j]);
+                // if ((ltInv) <> 0)
+
+                if (deg(M[i,j]) == 0)
                 {
                     return(i,j);
                 }
@@ -257,4 +259,3 @@ proc isomorphism_matrix_old_to_new(list lst_row_num_deleted, list lst_col_num_de
     }
     return(U);
 }
-
