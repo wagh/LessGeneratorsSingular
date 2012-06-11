@@ -11,7 +11,7 @@ AUTHORS:  VInay Wagh,         	  vinay_wagh@yahoo.com
 
 
 Procedures:
-size_matrix(M);		Returns the size of the matrix in "m x n" format. This is just for the display.
+size_matrix(M);		Returns the size of the matrix in \"m x n\" format. This is just for the display.
 CauchyBinetRow(M);	Returns the unimodular completion of (n-1)xn matrix.
 invtble_elt_in_matrix(matrix M)        Returns the matrix W when the row contains an invertible element
 invtble_elt_in_unimodular_row(matrix M)        Returns the completion of the unimodular row when the row contains an invertible element
