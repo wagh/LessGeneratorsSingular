@@ -10,12 +10,12 @@ proc get_unit_pos(matrix M)
 
     if (find("integer",s) == 0)
     {
-        for (i=1;i<=m;i++)
+        for (j=1;j<=n;j++)
         {
-            for (j=1;j<=n;j++)
+            for (i=1;i<=m;i++)
             {
-                // ltInv = leftInverse(M[i,j]);
-                // if ((ltInv) <> 0)
+                    // ltInv = leftInverse(M[i,j]);
+                    // if ((ltInv) <> 0)
 
                 if (deg(M[i,j]) == 0)
                 {
@@ -28,9 +28,9 @@ proc get_unit_pos(matrix M)
     }
     else
     {
-        for (i=1;i<=m;i++)
+        for (j=1;j<=n;j++)
         {
-            for (j=1;j<=n;j++)
+            for (i=1;i<=m;i++)
             {
                 if ((M[i,j] == 1) || (M[i,j] == -1))
                 {
@@ -149,18 +149,13 @@ proc complete_cleanup(matrix M)
         q = ij[2];
         lst_row_num_deleted[size(lst_row_num_deleted)+1] = p;
         lst_col_num_deleted[size(lst_col_num_deleted)+1] = q;
+        
+        // No need to divide by the unit here, as it is already being
+        // taken care of in the return value of cleanup()
+        
         // lst_rows_deleted[size(lst_rows_deleted)+1] = 1/M[p,q]*submat(M,1..m,q);
         // lst_cols_deleted[size(lst_cols_deleted)+1] = 1/M[p,q]*submat(M,p,1..n);
 
-        // "-----------------";
-        // // "M=";
-        // // print(M);
-        // "-----------------";
-        // "q=",q,"The column","m=",m;
-        // print(submat(M,1..m,q));
-        // "p=",p,"The row","n=",n;
-        // print(submat(M,p,1..n));
-        // "";
         l = cleanup(M,p,q);
         M = l[1];
         lst_cols_deleted[size(lst_cols_deleted)+1] = -l[2];
