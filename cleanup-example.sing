@@ -1,8 +1,8 @@
-
 // option(prot);
 // TRACE=1;
 LIB "control.lib";
 
+// Edit here.
 
 ring R = 0,(x,y,z),dp;
 matrix M = sparsematrix(6,10,1,0,10);
