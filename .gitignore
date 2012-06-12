@@ -10,3 +10,6 @@
 *.lai
 *.la
 *.a
+
+# for use within homalg's LessGenerators
+git_clone_LessGeneratorsSingular.sh
