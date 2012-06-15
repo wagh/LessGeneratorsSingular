@@ -13,8 +13,6 @@ AUTHORS:  VInay Wagh,         	  vinay_wagh@yahoo.com
 Procedures:
 size_matrix(M);		Returns the size of the matrix in \"m x n\" format. This is just for the display.
 CauchyBinetRow(M);	Returns the unimodular completion of (n-1)xn matrix.
-invtble_elt_in_matrix(matrix M)        Returns the matrix W when the row contains an invertible element
-invtble_elt_in_unimodular_row(matrix M)        Returns the completion of the unimodular row when the row contains an invertible element
 scan_coprime(matrix M)     Returns a list three integers: i,j1,j2 such that M[j1,i] & M[j2,i] are coprime
 row_completion_for_coprime_pair(matrix M, int i, int j, int k)      two elements in a row are coprime 
 get_unit_pos(matrix M)    Returns a list i,j such that M[i,j] is a unit.
@@ -23,6 +21,11 @@ complete_cleanup(matrix M)    Does a iterative cleanup of the given matrix, unti
 cleanup(matrix M, int p, int q)     cleanup of the given matrix, where M[p,q] entry is a unit.
 isomorphism_matrix_new_to_old(list lst_row_num_deleted, int n)      Gives isomorphism from new module to old.
 isomorphism_matrix_old_to_new(list lst_row_num_deleted, list lst_col_num_deleted, list lst_cols_deleted, int m)       Gives isomorphism from old module to new.
+generate_random_unimod_matrix(int n)       generates n x n unimodular matrix with random entries.
+find_column_except_1_elt_generate_unit(matrix M)      gives position (i,j) such that all but (i,j)-th element of j-th column generate 1
+column_except_1_elt_generate_unit(M, i, j, column_ideal)       Matrix W s.t. W*M has 1 in (i,j)-th position
+
+
 
 
 ";
@@ -90,99 +93,42 @@ proc CauchyBinetRow(matrix M)
 }
 
 
-
 ///////////////////////////////////////
-// Returns the matrix W 
-// Assumption: The row contains an invertible element (element from 
-// the basefield)
+// Input: nxm matrix
+// Returns a list three integers: i1,i2,j
+// such that M[i1,j] & M[i2,j] are coprime
 ///////////////////////////////////////
-// Input: matrix M of size mxn
-// Assume at least one of the M[i] is invertible
-///////////////////////////////////////
-proc invtble_elt_in_matrix(matrix M)
+proc scan_coprime_column(matrix M)
 {
-    string s = charstr(basering);
-    int m = nrows(M);    
-    int n = ncols(M);    
-    int i,j,k,l;
-    matrix ltInv[1][1];
-    matrix newMat[m-1][n-1];
-
-    list ij = get_unit_pos(M);
-
-    if (size(ij) == 1)
+    int i,j,k;
+    int m = nrows(M);
+    int n = ncols(M);
+    ideal I;
+    
+    for (j=1;j<=n;j++)
     {
-        "The proc is for the row with at least one invertible element";
-        return(0);
-    }
-    
-    i = ij[1];
-    j = ij[2];
-    
-    
-    for (k=1;k<i,k<>i;k++)
-    {
-        for (l=1;l<j;l++)
+        for(i1=1;i1<m;i1++)
         {
-            newMat[k,l] = M[k,l] - M[k,j]/M[i,j];
-        }
-        for (l=j+1;l<=n;l++)
-        {
-            newMat[k,l-1] = M[k,l] - M[k,j]/M[i,j];
+            for(i2=i1+1;i2<=m;i2++)
+            {
+                I = M[i1,j],M[i2,j];
+                I = std(I);
+                if (reduce(1,I) == 0)
+                {
+                    return(i1,i2,j);
+                }
+            }
         }
     }
-    
-    for (k=i+1;k<=m;k++)
-    {
-        for (l=1;l<j;l++)
-        {
-            newMat[k-1,l] = M[k,l] - M[k,j]/M[i,j];
-        }
-        for (l=j+1;l<=n;l++)
-        {
-            newMat[k-1,l-1] = M[k,l] - M[k,j]/M[i,j];
-        }
-    }
-    return(newMat);
+    return(0);
 }
-
-
-
-///////////////////////////////////////
-// Returns the matrix W
-// Assumption: The row contains an invertible element (element from 
-// the basefield)
-///////////////////////////////////////
-// Input: matrix M of size 1xn
-// Assume at least one of the M[i] is invertible
-///////////////////////////////////////
-proc invtble_elt_in_unimodular_row(matrix M)
-{
-    string s = charstr(basering);
-    int n = ncols(M);    
-    int i,j;
-
-    list ij = get_unit_pos(submat(M[1,1..n]));
-
-    if (size(ij) == 1)
-    {
-        j=ij[2];
-        return(dsum(1/M[1,j], unitmat(n-1)));
-    }
-    else
-    {
-        "The proc is for the row with at least one invertible element";
-        return(0);
-    }
-}
-
 
 ///////////////////////////////////////
 // Input: nxm matrix
 // Returns a list three integers: i,j1,j2
-// such that M[j1,i] & M[j2,i] are coprime
+// such that M[i,j1] & M[i,j2] are coprime
 ///////////////////////////////////////
-proc scan_coprime(matrix M)
+proc scan_coprime_row(matrix M)
 {
     int i,j,k;
     int m = nrows(M);
@@ -191,15 +137,15 @@ proc scan_coprime(matrix M)
     
     for (i=1;i<=n;i++)
     {
-        for(j=1;j<m;j++)
+        for(j1=1;j1<m;j1++)
         {
-            for(k=j+1;k<=m;k++)
+            for(j2=j1+1;j2<=m;j2++)
             {
-                I = M[j,i],M[k,i];
+                I = M[i,j1],M[i,j2];
                 I = std(I);
                 if (reduce(1,I) == 0)
                 {
-                    return(i,j,k);
+                    return(i,j1,j2);
                 }
             }
         }
@@ -313,7 +259,7 @@ proc cleanup(matrix M, int p, int q)
     // MM = submat(M,r,c) - 1/M[p,q]*pivotCol*pivotRow;
     MM = submat(M,r,c) - pivotCol*e*pivotRow;
 
-    return(MM, 1/M[p,q]*pivotCol, 1/M[p,q]*pivotRow);    
+    return(MM, pivotCol*e, e*pivotRow);    
     // return(MM);
 }
 
@@ -482,3 +428,134 @@ proc isomorphism_matrix_old_to_new(list lst_row_num_deleted, list lst_col_num_de
     }
     return(U);
 }
+
+
+
+//////////////////////////////////
+// This generates n x n unimodular matrix with random entries.
+//////////////////////////////////
+proc generate_random_unimod_matrix(int n)
+{
+    int i,j;
+    matrix M[n][n];
+    
+    for (i=1;i<=n;i++)
+    {
+        M[i,i] = random(1,10);// sparsepoly(0,0,0,3);
+    }
+    for (i=1;i<=n;i++)
+    {
+        for (j=1;j<i;j++)
+        {
+            M[i,j] = sparsepoly(0,1,75,3);
+        }
+    }
+    return(transpose(M)*M);
+}
+
+
+
+////////////////////////////////
+// Input: mxn matrix M, 
+//
+// Output: int i, int j such that (n-1)-elements of j-th column,
+// namely all elements except [i,j]-th entry generate 1 and the ideal
+// row_id generated by these (n-1) elements.
+////////////////////////////////
+proc find_column_except_1_elt_generate_unit(matrix M)
+{
+    int i,j,t;
+    int m,n;
+    m = nrows(M);
+    n = ncols(M);
+
+    intvec v,w;
+    list l;
+    ideal column_id;
+    
+    for (j=1;j<=m;j++)          // Column No.
+    {
+        for (i=1;i<=n;i++)      // Row No.
+        {
+            v = 1..m;
+            l = list(v[1..m]);
+            l = delete(l,i);
+            for (t=1;t<=size(l);t++)
+            {
+                w[t]=l[t];
+            }
+            
+            column_id = ideal(submat(M,w,j));
+            // column_id = std(column_id); // These two steps are needed as I
+            //                       // am not sure whether std bit is
+            //                       // set properly if you combine the
+            //                       // two steps. (Ref: Singular trac
+            //                       // tkt 428)
+            if (reduce(1,std(column_id)) == 0)
+            {
+                return(i, j, column_id);
+            }
+        }
+    }
+    return("The matrix is not unimodular.");
+}
+
+
+
+////////////////////////////////
+// Input: mxn matrix M, int i, int j such that (n-1)-elements of j-th
+// column, namely all elements except [i,j]-th entry generate the unit
+// matrix.
+//
+// Output: Matrix of transformation W, such that W*j-th column of M
+// makes 1 in (i,j)-th position.
+////////////////////////////////
+
+proc column_except_1_elt_generate_unit(matrix M, int i, int j, ideal column_ideal)
+{
+    int k,l;
+    int n = ncols(M);
+    
+    matrix W = unitmat(n);
+    matrix G = rightInverse(matrix(column_ideal)); // Need to compute right
+                                           // inverse irrespective of
+                                           // row or column
+                                           // proc. Since typecast
+                                           // from ideal to matrix
+                                           // gives a row of which we
+                                           // are finding right inverse.
+    if (i == 1)
+    {
+        W[j,i]=1;
+        
+        for (k=2;k<=n;k++)
+        {
+            W[j,k] = (1-M[i,j])*G[k-1,1];
+        }
+        return(W);
+    }
+
+    if (i == n)
+    {
+        W[j,i]=1;
+        for (k=1;k<=n-1;k++)
+        {
+            W[j,k] = (1-M[i,j])*G[k,1];
+        }
+        return(W);
+    }
+    for (k=1;k<=n;k++)
+    {
+        W[j,i]=1;
+        if (k<i)
+        {
+            W[j,k] = (1-M[i,j])*G[k,1];
+        }
+        if (k>i)
+        {
+            W[j,k] = (1-M[i,j])*G[k-1,1];
+        }
+    }
+    return(W);
+}
+
