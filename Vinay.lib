@@ -33,7 +33,7 @@ row_except_1_elt_generate_unit(M, i, j, column_ideal)       Matrix W s.t. W*M ha
 ";
 
 
-LIB "matrix.lib";
+LIB "control.lib";
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -43,7 +43,7 @@ LIB "matrix.lib";
 // in the format: "r x c"
 // Warning: The output is a string.
 ///////////////////////////////////////
-proc size_Matrix(matrix M)
+proc size_matrix(matrix M)
 {
     if (typeof(M) <> "matrix")
     {

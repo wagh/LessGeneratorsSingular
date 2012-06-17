@@ -6,7 +6,7 @@ LIB "control.lib";
 // in the format: "r x c"
 // Warning: The output is a string.
 ///////////////////////////////////////
-proc size_Matrix(matrix M)
+proc size_matrix(matrix M)
 {
     if (typeof(M) <> "matrix")
     {
