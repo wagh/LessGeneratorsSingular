@@ -546,17 +546,16 @@ proc column_except_1_elt_generate_unit(matrix M, int i, int j, ideal column_idea
         }
         return(W);
     }
-    for (k=1;k<=n;k++)
+    for (k=1;k<i;k++)
     {
         W[j,i]=1;
         if (k<i)
-        {
             W[j,k] = (1-M[i,j])*G[k,1];
-        }
-        if (k>i)
-        {
-            W[j,k] = (1-M[i,j])*G[k-1,1];
-        }
+    }
+    for (k=1;k>i;k++)
+    {
+        W[j,i]=1;
+        W[j,k] = (1-M[i,j])*G[k-1,1];
     }
     return(W);
 }
@@ -648,20 +647,18 @@ proc row_except_1_elt_generate_unit(matrix M, int i, int j, ideal row_ideal)
         }
         return(W);
     }
-    for (k=1;k<=m;k++)
+    for (k=1;k<j;k++)
     {
         W[j,i]=1;
-        if (k<j)
-            {
-                W[k,i] = G[k,1]*(1-M[i,j]);
-            }
-            if (k>j)
-            {
-                W[k,i] = G[k-1,1]*(1-M[i,j]);
-            }
-            }
-        return(W);
+        W[k,i] = G[k,1]*(1-M[i,j]);
     }
+    for (k=1;k>j;k++)
+    {
+        W[j,i]=1;
+        W[k,i] = G[k-1,1]*(1-M[i,j]);
+    }
+    return(W);
+}
 
 
 
