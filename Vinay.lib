@@ -330,6 +330,7 @@ proc complete_cleanup(matrix M)
         }
         p = ij[1];
         q = ij[2];
+
         lst_row_num_deleted[size(lst_row_num_deleted)+1] = p;
         lst_col_num_deleted[size(lst_col_num_deleted)+1] = q;
         
@@ -462,6 +463,7 @@ proc generate_random_unimod_matrix(int n)
             M[i,j] = sparsepoly(0,1,75,3);
         }
     }
+    
     return(transpose(M)*M);
 }
 
@@ -674,6 +676,8 @@ proc row_except_1_elt_generate_unit(matrix M, int i, int j, ideal row_ideal)
 ///////////////////////////////
 // Given a matrix M, this proc finds a column which has left inverse
 // containing a unit.
+//
+// Anna's thesis Heuristic 2.2.2(1)
 //
 // INPUT: Matrix M
 //

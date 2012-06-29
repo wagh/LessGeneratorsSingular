@@ -1,0 +1,228 @@
+//////////////////////////////////////////////////
+// Input: poly f of degree s and poly g of degree <= s-1
+// int var_pos is the position of the variable wrt which SuslinLemma is applied.
+// int unit_pos is the unit_pos-th coefficients of g is a unit.
+//
+// Assumption:the poly g is given by: b_0+b_1y+...+b_(s-1)y^(s-1) and
+// unit_pos=j+1 such that b_j=coeff of y^j is a unit in the ring B,
+// where B is a subring of the basering without (var_pos)-th variable.
+//
+// Returns a poly g' of degree <= s-1, whose leading coefficient is
+// this unit.
+//
+// Ref: Lemma 4.97 in Rotman
+//////////////////////////////////////////////////
+
+
+proc SuslinLemma(poly f, poly g, int var_pos, int unit_pos)
+{
+    int i,j;
+    poly gg;
+    poly var_poly = var(var_pos);
+    int s,d,t;
+    
+    matrix W = unitmat(2);
+    matrix V = unitmat(2);    
+    
+    matrix F[1][2] = f,g;
+    
+    gg = g;
+
+    matrix A = coeffs(f,var(var_pos));
+    matrix B = coeffs(gg,var(var_pos));
+    matrix fd_mat;
+    intmat v_mat [nvars(basering)][1]=0;
+    v_mat[var_pos,1] = 1;
+    intvec v = intvec(v_mat);
+
+    "unit_pos = ",unit_pos,". Want a poly with y-leading coeff = ",B[unit_pos+1,1];
+    "";
+
+    s = deg(f,v);
+    t = deg(g,v);    
+    d = s - t;
+    
+    "s=,",s,"t=",t,"d=",d;
+    
+    if (unit_pos == t)
+    {
+        "Nothing to do.";
+        return(F,W);
+    }
+    
+
+
+//    for (i=s-2;i>=unit_pos;i--)
+    for (i=1;i<=t-unit_pos;i++)
+    {
+        V = 1, -B[t+1,1], 0, y + A[s,1];
+        F = F * V;
+        W = W * V;
+            // F;
+        W;
+        "";
+        
+        
+        gg = F[1,2];
+
+        // gg = (A[s,1]+y)*gg - B[t+1,1]*f;
+        // gg = y*gg - B[t+1,1]*f;
+        
+        B = coeffs(gg,var(var_pos));
+        t = deg(gg,v);
+        d = s - t;
+        "coeffs of the new gg";
+        B;
+        "";
+            // F[1,2]=gg;        
+    }
+    "---------------------------------------";
+    "y-deg(F[1,2]-g) = ",deg(F[1,2]-g,v);
+    "";
+    return(F,W);
+}
+
+
+
+
+
+
+
+//////////////////////////////////////////////////
+// Input: poly f of degree s and poly g of degree <= s-1
+// int var_pos is the position of the variable wrt which SuslinLemma is applied.
+// int unit_pos is the unit_pos-th coefficients of g is a unit.
+//
+// Assumption:the poly g is given by: b_0+b_1y+...+b_(s-1)y^(s-1) and
+// unit_pos=j+1 such that b_j=coeff of y^j is a unit in the ring B,
+// where B is a subring of the basering without (var_pos)-th variable.
+//
+// Returns a poly g' of degree <= s-1, whose leading coefficient is
+// this unit and the matrix W of transformation.
+//
+// Ref: Lemma 4.97 in Rotman
+//////////////////////////////////////////////////
+
+proc Suslin_Lemma_from_Maple(poly f, poly g, int var_pos, int unit_pos)
+{
+    int i,j;
+    poly h, cp, cq;
+    poly var_poly = var(var_pos);
+    int s,d,t,k;    
+    matrix W = unitmat(2);
+    matrix F[1][2] = f,g;
+    
+    intmat v [nvars(basering)][1]=0;
+    v[var_pos,1] = 1;
+
+    s = deg(f,intvec(v));
+    t = deg(g,intvec(v));    
+
+    if (s<=t)
+    {
+        ERROR("The polynomial f should be of higher degree than g.");
+    }
+    if (unit_pos > t)
+    {
+        ERROR("The position of unit should be smaller than degree of g.");
+    }
+    
+    matrix A = coeffs(f,var(var_pos));
+
+    if(A[size(A),1] != 1)
+    {
+        ERROR("The poly f should be monic.");
+    }
+
+    s = size(A);
+    matrix tmpA = A;
+    for(i=1;i<=s;i++)
+    {
+        
+        tmpA[i,1] = A[s-i+1,1];
+    }
+    A = submat(tmpA,2..size(tmpA),1); // Anna has ignored the
+                                      // leadcoeff of f as it is
+                                      // already 1.
+    
+    matrix B = coeffs(g,var(var_pos));
+    t = size(B);
+    tmpA = B;
+    for(i=1;i<=t;i++)
+    {
+        tmpA[i,1] = B[t-i+1,1];
+    }
+    B = tmpA;
+    
+
+    // "unit_pos = ",unit_pos,". Want a poly with y-leading coeff = ",B[t-unit_pos,1];
+    // "";
+
+    
+    k = s - unit_pos - 1;
+    
+    // "s=,",s,"t=",t,"d=",d;
+    
+    if (unit_pos + 1 == t)
+    {
+        "Nothing to do.";
+        return(g,0,1);
+    }
+    
+    if (B[t-unit_pos,1] == 0)
+    {
+        h = 0;
+        cp = 0;
+        cq = 0;
+    }
+    else
+    {
+        if (k==1)
+        {
+            cp = 0;
+            cq = 1;
+        }
+        else
+        {
+            cq = var_poly^(k-1);
+            for (i=1;i<=k-1;i++)
+            {
+                cq = cq + A[i,1]*var_poly^(k-i-1);
+            }
+            cp = B[k-1,1];
+            if (k > 2)
+            {
+                for (i=1;i<=k-2;i++)
+                {
+                    cp = cp + B[k-1-i,1]*var_poly^(i);
+                }
+            }
+        }
+        cp = -cp;   
+        h = cq*g + cp*f;
+    }
+    return(h,cp,cq);
+}
+
+
+LIB "random.lib";
+ring R = 0,(x,y),dp;
+// poly f = y^6 + 23xy5+x2y4;//+sparsepoly(2,3,75,5);
+// poly g = sparsepoly(2,3,75,5);
+poly f = x2y4+23xy5+y6+7x-y2;
+poly g = y2*(4xy2+x2+x2y-xy3);
+
+"f=",f;
+"g=",g;
+"";
+coeffs(g,var(2));
+"";
+intvec v = 0,1,0;
+
+list l = Suslin_Lemma_from_Maple(f,g,2,0);
+"poly g' = ",l[1];
+"";
+"poly cp = ",l[2];
+"";
+"poly cq = ",l[3];
+"";
