@@ -116,7 +116,9 @@ proc Suslin_Lemma_from_Maple(poly f, poly g, int var_pos, int unit_pos)
     v[var_pos,1] = 1;
 
     s = deg(f,intvec(v));
-    t = deg(g,intvec(v));    
+    t = deg(g,intvec(v));
+    d = t - s;
+    
 
     if (s<=t)
     {
@@ -145,31 +147,36 @@ proc Suslin_Lemma_from_Maple(poly f, poly g, int var_pos, int unit_pos)
                                       // leadcoeff of f as it is
                                       // already 1.
     
-    matrix B = coeffs(g,var(var_pos));
-    t = size(B);
-    tmpA = B;
+    matrix B[s][1];
+
+    tmpA = coeffs(g,var(var_pos));
+    t = size(tmpA)-1;
+
+    tmpA;
     for(i=1;i<=t;i++)
     {
-        tmpA[i,1] = B[t-i+1,1];
+        B[i-d,1] = tmpA[s-i+1+d,1];
     }
-    B = tmpA;
+        // B = tmpA;
+    B;
     
 
     // "unit_pos = ",unit_pos,". Want a poly with y-leading coeff = ",B[t-unit_pos,1];
     // "";
 
     
-    k = s - unit_pos - 1;
+    k = s - unit_pos;
     
     // "s=,",s,"t=",t,"d=",d;
     
-    if (unit_pos + 1 == t)
+    if (unit_pos == t)
     {
         "Nothing to do.";
         return(g,0,1);
     }
     
-    if (B[t-unit_pos,1] == 0)
+    if (B[k,1] == 0)
+    // if (B[t-unit_pos,1] == 0)
     {
         h = 0;
         cp = 0;
@@ -210,7 +217,7 @@ ring R = 0,(x,y),dp;
 // poly f = y^6 + 23xy5+x2y4;//+sparsepoly(2,3,75,5);
 // poly g = sparsepoly(2,3,75,5);
 poly f = x2y4+23xy5+y6+7x-y2;
-poly g = y2*(4xy2+x2+x2y-xy3);
+poly g = 1*(4xy2+x2+x2y-xy3);
 
 "f=",f;
 "g=",g;
@@ -219,8 +226,16 @@ coeffs(g,var(2));
 "";
 intvec v = 0,1,0;
 
-list l = Suslin_Lemma_from_Maple(f,g,2,0);
-"poly g' = ",l[1];
+list l = Suslin_Lemma_from_Maple(f,g,2,3);
+"poly g' = ",coeffs(l[1],var(2));
+"";
+"poly cp = ",l[2];
+"";
+"poly cq = ",l[3];
+"";
+
+list l = Suslin_Lemma_from_Maple(f,g,2,2);
+"poly g' = ",coeffs(l[1],var(2));
 "";
 "poly cp = ",l[2];
 "";
