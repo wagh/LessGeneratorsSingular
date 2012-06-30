@@ -63,7 +63,10 @@ proc cleanup(matrix M, int p, int q)
     matrix MM[m-1][n-1];
     list tmp_list;
     intvec tmp_vec,r,c;
-
+    matrix e[1][1];
+    
+    e = 1/M[p,q];
+    
     tmp_vec = 1..m;
     tmp_list = list(tmp_vec[1..size(tmp_vec)]);
     tmp_list = delete(tmp_list,p);
@@ -86,8 +89,11 @@ proc cleanup(matrix M, int p, int q)
     matrix pivotRow[1][n-1] = submat(M,p,c);
     
     // MM = submat(M,r,c) - 1/M[p,q]*submat(M,r,q)*submat(M,p,c);
-    MM = submat(M,r,c) - 1/M[p,q]*pivotCol*pivotRow;
-    
+
+    // Changed this to cater the non-commutative case.
+    // MM = submat(M,r,c) - 1/M[p,q]*pivotCol*pivotRow;
+    MM = submat(M,r,c) - pivotCol*e*pivotRow;
+
     return(MM, 1/M[p,q]*pivotCol, 1/M[p,q]*pivotRow);    
     // return(MM);
 }
@@ -193,9 +199,12 @@ proc delete_i_th_row(matrix M, int i)
 // This proc gives the isomorphism matrix by deleting the
 // corresponding columns from the identity matrix. The list
 // lst_rows_deleted tells (sequentially) which columns are to be
-// deleted.  Warning: The above list may contain repeated numbers. It
-// just means that first you delete lst_rows_deleted[1] column from I,
-// then delete lst_rows_deleted[2] column from the result and so on.
+// deleted.  
+// 
+// Warning: The above list may contain repeated numbers. It just means
+// that first you delete lst_rows_deleted[1] column from I, then
+// delete lst_rows_deleted[2] column from the result and so on.  
+//
 // The second parameter n is the number of columns of the original
 // matrix.
 //
