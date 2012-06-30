@@ -1,67 +1,71 @@
 LIB "control.lib";
 
-///////////////////////////////////////
-// Returns the size of a matrix 
-// in the format: "r x c"
-// Warning: The output is a string.
-///////////////////////////////////////
-proc size_Matrix(matrix M)
-{
-    if (typeof(M) <> "matrix")
-    {
-        return("Use size function\n The input should be of the type matrix");
-    }
-    return(string(nrows(M))+" x "+string(ncols(M)));
-}
+< "cleanup.sing";
 
-///////////////////////////////////////
+// ///////////////////////////////////////
+// // Returns the size of a matrix 
+// // in the format: "r x c"
+// // Warning: The output is a string.
+// ///////////////////////////////////////
+// proc size_Matrix(matrix M)
+// {
+//     if (typeof(M) <> "matrix")
+//     {
+//         return("Use size function\n The input should be of the type matrix");
+//     }
+//     return(string(nrows(M))+" x "+string(ncols(M)));
+// }
+
+///////////////////////////////////////111111111111
 // Returns the completion of the unimodular row 
 // Assumption: The row contains an invertible element (element from 
 // the basefield)
-///////////////////////////////////////
+///////////////////////////////////////22222222222
 // Input: matrix M of size 1xn
 // Assume at least one of the M[i] is invertible
-proc invtble_elt_in_uni_row(matrix M)
+///////////////////////////////////////33333333333
+proc invtble_elt_in_unimodular_row(matrix M)
 {
     string s = charstr(basering);
     int n = ncols(M);    
     int i;
-    matrix ltInv[1][1];
+
     if (find("integer",s) == 0)
     {
         for (i=1;i<=n;i++)
         {
-            ltInv = leftInverse(M[1,i]);
-            if ((ltInv) <> 0)
-            {
-                return(dsum(ltInv, unitmat(n-1)));
-            }
+                // ltInv = leftInverse(M[1,i]);
+                // if ((ltInv) <> 0)
+            if (deg(M[1,i]) == 0)
+                {
+                    return(dsum(1/M[1,i], unitmat(n-1)));
+                }
+            "The proc is for the row with at least one invertible element";
+            return(0);
         }
-        "The proc is for the row with at least one invertible element";
-        return(0);
-    }
-    else
-    {
-        for (i=1;i<=n;i++)
+        else
         {
-            if ((M[1,i] == 1) || (M[1,i] == -1))
+            for (i=1;i<=n;i++)
             {
-                return(dsum(M[1,i], unitmat(n-1)));
+                if ((M[1,i] == 1) || (M[1,i] == -1))
+                {
+                    return(dsum(M[1,i], unitmat(n-1)));
+                }
             }
+            "The proc is for the row with at least one invertible element";
+            return(0);
         }
-        "The proc is for the row with at least one invertible element";
-        return(0);
     }
 }
 
-///////////////////////////////////////
+///////////////////////////////////////4444444444444444
 // Returns the completion of the unimodular row 
 // Assumption: The row contains an invertible element (element from 
 // the basefield)
-///////////////////////////////////////
+///////////////////////////////////////55555555555555555
 // Input: matrix M of size mxn
 // Assume at least one of the M[i] is invertible
-proc invtble_elt_mat(matrix M)
+proc invtble_elt_in_matrix(matrix M)
 {
     string s = charstr(basering);
     int m = nrows(M);    
@@ -69,106 +73,61 @@ proc invtble_elt_mat(matrix M)
     int i,j,k,l;
     matrix ltInv[1][1];
     matrix newMat[m-1][n-1];
-    if (find("integer",s) == 0)
-    {
-        for (i=1;i<=m;i++)
-        {
-            for (j=1;j<=n;j++)
-            {
-                ltInv = leftInverse(M[i,j]);
-                if ((ltInv) <> 0)
-                {
-                    for (k=1;k<i,k<>i;k++)
-                    {
-                        for (l=1;l<j;l++)
-                        {
-                            newMat[k,l] = M[k,l] - M[k,j]*ltInv;
-                        }
-                        for (l=j+1;l<=n;l++)
-                        {
-                            newMat[k,l-1] = M[k,l] - M[k,j]*ltInv;
-                        }
-                    }
 
-                    for (k=i+1;k<=m;k++)
-                    {
-                        for (l=1;l<j;l++)
-                        {
-                            newMat[k-1,l] = M[k,l] - M[k,j]*ltInv;
-                        }
-                        for (l=j+1;l<=n;l++)
-                        {
-                            newMat[k-1,l-1] = M[k,l] - M[k,j]*ltInv;
-                        }
-                    }
-                        // size_Matrix(newMat);
-                    "=========";
-                    return(newMat);
-                }
-            }
-        }
-        "The matrix does not contain a unit element";
-        return(0);
-    }
-    else
+    list ij = get_unit_pos(M);
+
+    if (size(ij) == 1)
     {
-        for (i=1;i<=m;i++)
-        {
-            for (j=1;j<=n;j++)
-            {
-                if ((M[1,i] == 1) || (M[1,i] == -1))
-                {
-                    ltInv = M[i,j];
-                    if ((ltInv) <> 0)
-                    {
-                        for (k=1;k<i,k<>i;k++)
-                        {
-                            for (l=1;l<j;l++)
-                            {
-                                newMat[k,l] = M[k,l] - M[k,j]*ltInv;
-                            }
-                            for (l=j+1;l<=n;l++)
-                            {
-                                newMat[k,l-1] = M[k,l] - M[k,j]*ltInv;
-                            }
-                        }
-                        for (k=i+1;k<=m;k++)
-                        {
-                            for (l=1;l<j;l++)
-                            {
-                                newMat[k-1,l] = M[k,l] - M[k,j]*ltInv;
-                            }
-                            for (l=j+1;l<=n;l++)
-                            {
-                                newMat[k-1,l-1] = M[k,l] - M[k,j]*ltInv;
-                            }
-                        }
-                        size_Matrix(newMat);
-                        "=========";
-                        return(newMat);
-                    }
-                }
-            }            
-        }
         "The proc is for the row with at least one invertible element";
         return(0);
     }
+    
+    i = ij[1];
+    j = ij[2];
+    
+    
+    for (k=1;k<i,k<>i;k++)
+    {
+        for (l=1;l<j;l++)
+        {
+            newMat[k,l] = M[k,l] - M[k,j]/M[i,j];
+        }
+        for (l=j+1;l<=n;l++)
+        {
+            newMat[k,l-1] = M[k,l] - M[k,j]/M[i,j];
+        }
+    }
+    
+    for (k=i+1;k<=m;k++)
+    {
+        for (l=1;l<j;l++)
+        {
+            newMat[k-1,l] = M[k,l] - M[k,j]/M[i,j];
+        }
+        for (l=j+1;l<=n;l++)
+        {
+            newMat[k-1,l-1] = M[k,l] - M[k,j]/M[i,j];
+        }
+    }
+    return(newMat);
 }
 
 
 
-ring R = (integer,6),(x,y),dp;
+
+// ring R = (integer,6),(x,y),dp;
+ring R = 0,(x,y),dp;
 
 // matrix M[3][3];
 // M = 23455, -64/5*x+384/25*y+2152/125,      8/25*y+4/125,
 //     168/5*x-1008/25*y-5524/125,     -21/25*y-21/250;
 // M = -64*x+3*y+2,8*y+4,2,-x,6*x-5*y-5,-2*y-20,x2-y2,xy,x3y7-1;
 
-matrix M = sparsematrix(100,130,1,0,0);
-// print(M);
+matrix M = sparsematrix(4,5,1,0,50);
+print(M);
 // size_Matrix(M);
 "--------";
-matrix N = invtble_elt_mat(M);
+matrix N = invtble_elt_in_matrix(M);
 print(N);
 // size_Matrix(N);
 

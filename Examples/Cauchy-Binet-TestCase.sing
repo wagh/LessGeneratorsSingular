@@ -1,3 +1,7 @@
+LIB "Vinay.lib";
+LIB "control.lib";
+
+
 ring R = 0,(x,y),dp;
 matrix m[3][2];
 

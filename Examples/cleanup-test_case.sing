@@ -6,7 +6,11 @@ LIB "control.lib";
 
 
 ring R = 0,(x,y,z),dp;
-matrix M = sparsematrix(100,100,100);
+// matrix M = sparsematrix(100,100,100);
+matrix M[5][5];
+
+M = 1,9x2+y2+24x+2y+82,6xy+7x+11y+13,6xy+5x+9y+9,10x+15,35x2+5yz+165x+15y+5z+130,10x+15,10y+10,15y+5,25,-14x2y-2y2z-28x2-52xy-6y2-6yz-111x-54y-3z-86,6xy+7x+11y+13,8y2+20y+14,6y2+14y+11,10y+10,21x2y+3y2z-35x2+99xy+9y2-2yz-144x+63y-5z-115,6xy+5x+9y+9,6y2+14y+11,9y2+6y+10,15y+5,7x3+xyz+5x2+3xy+xz-5yz+z2-113x-15y+z-57,7x2+yz+30x+3y+z+26,8xy+9x+8y+z+14,9xy+6x+3y+10,15x+5;
+
 
 // M = 
 //     0,  73y+72,0,         0,    0,      0,     0,      72x+79z,0,      0,      
@@ -18,12 +22,15 @@ matrix M = sparsematrix(100,100,100);
 
 // matrix M[4][3] = 5,2,6,78,3,2,6,4,3,345,45,12;
 
-// print(M);
+print(M);
 "";
 list cleanMat_list = complete_cleanup(M);
 if (size(cleanMat_list) <> 1)
 {    
     matrix cleanMat = cleanMat_list[1];
+    // cleanMat;
+    // "";
+    
     list lst_row_num_deleted = cleanMat_list[2];
     list lst_col_num_deleted = cleanMat_list[3];
     list lst_rows_deleted = cleanMat_list[4];
@@ -31,10 +38,10 @@ if (size(cleanMat_list) <> 1)
 
     matrix UI = isomorphism_matrix_new_to_old(lst_row_num_deleted, ncols(M));
     // print(UI);
-    "";
+    // "";
     matrix U = isomorphism_matrix_old_to_new(lst_row_num_deleted, lst_col_num_deleted, lst_cols_deleted, nrows(M));
     // print(U);
-    "";
+    // "";
 }
 else
 {
