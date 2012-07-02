@@ -35,7 +35,7 @@ complete_cleanup(matrix M)    Does a iterative cleanup of the given matrix, unti
 cleanup(matrix M, int p, int q)     cleanup of the given matrix, where M[p,q] entry is a unit.
 isomorphism_matrix_new_to_old(list lst_row_num_deleted, int n)      Gives isomorphism from new module to old.
 isomorphism_matrix_old_to_new(list lst_row_num_deleted, list lst_col_num_deleted, list lst_cols_deleted, int m)       Gives isomorphism from old module to new.
-Suslin_Lemma_from_Maple(poly f, poly g, int var_pos, int unit_pos)      Given f, g with g_(unit_pos) is a unit wrt var(var_pos) it returns a poly with this unit as a leadcoeff.
+Suslin_Lemma(poly f, poly g, int var_pos, int unit_pos)      Given f, g with g_(unit_pos) is a unit wrt var(var_pos) it returns a poly with this unit as a leadcoeff.
 is_local_unit(poly f, ideal max_id, int var_pos)         Checks if f is a unit in the localization wrt max_id of subring without var(var_pos) 
 
 
@@ -760,7 +760,6 @@ proc row_having_right_inverse_containing_unit(matrix M)
 
 
 
-
 //////////////////////////////////////////////////
 // Input: poly f of degree s and poly g of degree <= s-1
 // int var_pos is the position of the variable wrt which SuslinLemma is applied.
@@ -776,20 +775,22 @@ proc row_having_right_inverse_containing_unit(matrix M)
 // Ref: Lemma 4.97 in Rotman
 //////////////////////////////////////////////////
 
-proc Suslin_Lemma_from_Maple(poly f, poly g, int var_pos, int unit_pos)
+// proc Suslin_Lemma_from_GAP(poly f, poly g, int var_pos, int unit_pos)
+proc Suslin_Lemma(poly f, poly g, int var_pos, int unit_pos)
 {
     int i,j;
     poly h, cp, cq;
     poly var_poly = var(var_pos);
     int s,d,t,k;    
-    matrix W = unitmat(2);
     matrix F[1][2] = f,g;
-    
-    intmat v [nvars(basering)][1]=0;
-    v[var_pos,1] = 1;
 
-    s = deg(f,intvec(v));
-    t = deg(g,intvec(v));    
+    intvec v;
+    v[nvars(basering)] = 0;
+    v[var_pos] = 1;
+
+
+    s = deg(f,v);
+    t = deg(g,v);    
 
     if (s<=t)
     {
@@ -797,85 +798,66 @@ proc Suslin_Lemma_from_Maple(poly f, poly g, int var_pos, int unit_pos)
     }
     if (unit_pos > t)
     {
-        ERROR("The position of unit should be smaller than degree of g.");
+        ERROR("The position of unit should be between 0 and degree of g.");
+    }
+    if (unit_pos < 0)
+    {
+        ERROR("The position of unit should be between 0 and degree of g.");
     }
     
-    matrix A = coeffs(f,var(var_pos));
+    matrix A = coeffs(f,var_poly);
 
     if(A[size(A),1] != 1)
     {
         ERROR("The poly f should be monic.");
     }
 
-    s = size(A);
-    matrix tmpA = A;
-    for(i=1;i<=s;i++)
-    {
-        
-        tmpA[i,1] = A[s-i+1,1];
-    }
-    A = submat(tmpA,2..size(tmpA),1); // Anna has ignored the
-                                      // leadcoeff of f as it is
-                                      // already 1.
-    
-    matrix B = coeffs(g,var(var_pos));
-    t = size(B);
-    tmpA = B;
-    for(i=1;i<=t;i++)
-    {
-        tmpA[i,1] = B[t-i+1,1];
-    }
-    B = tmpA;
-    
-
-    // "unit_pos = ",unit_pos,". Want a poly with y-leading coeff = ",B[t-unit_pos,1];
-    // "";
-
-    
-    k = s - unit_pos - 1;
-    
-    // "s=,",s,"t=",t,"d=",d;
-    
-    if (unit_pos + 1 == t)
+    if (unit_pos == t)
     {
         "Nothing to do.";
         return(g,0,1);
     }
-    
-    if (B[t-unit_pos,1] == 0)
+    matrix B = coeffs(g,var_poly);
+    if (B[unit_pos + 1,1] == 0)
     {
-        h = 0;
-        cp = 0;
+        // h = 0;
+        // cp = 0;
+        // cq = 0;
+        return(0,0,0);
+    }
+    A = submat(A, (unit_pos+1)+1 .. s+1, 1);
+
+    B = submat(B, (unit_pos+1)+1 .. t+1, 1);
+    
+    matrix YA [1][size(A)];
+    
+    for (i=1;i<=s-(unit_pos+1)+1;i++)
+    {
+        YA[1,i] = var_poly^(i-1);
+    }
+    
+    matrix cp_mat = YA*A;
+    cp = cp_mat[1,1];
+    
+    if (t == unit_pos)
+    {
         cq = 0;
     }
     else
-    {
-        if (k==1)
+    {        
+        matrix YB[1][t-unit_pos];
+        
+        for (i=0;i<=t-(unit_pos+1);i++)
         {
-            cp = 0;
-            cq = 1;
+            YB[1,i+1] = var_poly^i;
         }
-        else
-        {
-            cq = var_poly^(k-1);
-            for (i=1;i<=k-1;i++)
-            {
-                cq = cq + A[i,1]*var_poly^(k-i-1);
-            }
-            cp = B[k-1,1];
-            if (k > 2)
-            {
-                for (i=1;i<=k-2;i++)
-                {
-                    cp = cp + B[k-1-i,1]*var_poly^(i);
-                }
-            }
-        }
-        cp = -cp;   
-        h = cq*g + cp*f;
+        matrix cq_mat = YB*B;
+        cq = - cq_mat[1,1];
+        
     }
-    return(h,cp,cq);
+    return(cq*f+cp*g,cp,cq);
 }
+
 
 
 
