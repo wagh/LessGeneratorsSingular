@@ -1,0 +1,96 @@
+//////////////////////////////////////////////////
+// Input: poly f of degree s and poly g of degree <= s-1
+// int var_pos is the position of the variable wrt which SuslinLemma is applied.
+// int unit_pos is the unit_pos-th coefficients of g is a unit.
+//
+// Assumption:the poly g is given by: b_0+b_1y+...+b_(s-1)y^(s-1) and
+// unit_pos=j+1 such that b_j=coeff of y^j is a unit in the ring B,
+// where B is a subring of the basering without (var_pos)-th variable.
+//
+// Returns a poly g' of degree <= s-1, whose leading coefficient is
+// this unit and the matrix W of transformation.
+//
+// Ref: Lemma 4.97 in Rotman
+//////////////////////////////////////////////////
+
+proc Suslin_Lemma_from_GAP(poly f, poly g, int var_pos, int unit_pos)
+{
+    int i,j;
+    poly h, cp, cq;
+    poly var_poly = var(var_pos);
+    int s,d,t,k;    
+    matrix F[1][2] = f,g;
+
+intvec v;
+v[nvars(basering)] = 0;
+v[var_pos] = 1;
+
+
+    s = deg(f,v);
+    t = deg(g,v);    
+
+    if (s<=t)
+    {
+        ERROR("The polynomial f should be of higher degree than g.");
+    }
+    if (unit_pos > t)
+    {
+        ERROR("The position of unit should be between 0 and degree of g.");
+    }
+    if (unit_pos < 0)
+    {
+        ERROR("The position of unit should be between 0 and degree of g.");
+    }
+    
+    matrix A = coeffs(f,var_poly);
+
+    if(A[size(A),1] != 1)
+    {
+        ERROR("The poly f should be monic.");
+    }
+
+    if (unit_pos == t)
+    {
+        "Nothing to do.";
+        return(g,0,1);
+    }
+    matrix B = coeffs(g,var_poly);
+    if (B[unit_pos + 1,1] == 0)
+    {
+        // h = 0;
+        // cp = 0;
+        // cq = 0;
+        return(0,0,0);
+    }
+    A = submat(A, (unit_pos+1)+1 .. s+1, 1);
+
+    B = submat(B, (unit_pos+1)+1 .. t+1, 1);
+    
+    matrix YA [1][size(A)];
+    
+    for (i=1;i<=s-(unit_pos+1)+1;i++)
+    {
+        YA[1,i] = var_poly^(i-1);
+    }
+    
+    matrix cp_mat = YA*A;
+    cp = cp_mat[1,1];
+    
+    if (t == unit_pos)
+    {
+        cq = 0;
+    }
+    else
+    {        
+        matrix YB[1][t-unit_pos];
+        
+        for (i=0;i<=t-(unit_pos+1);i++)
+        {
+            YB[1,i+1] = var_poly^i;
+        }
+        matrix cq_mat = YB*B;
+        cq = - cq_mat[1,1];
+        
+    }
+    return(cq*f+cp*g,cp,cq);
+}
