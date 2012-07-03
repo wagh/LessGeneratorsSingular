@@ -27,6 +27,9 @@ delete_i_th_row(matrix M,int i)         Deletes i-th row of the matrix M and ret
 generate_random_unimod_matrix(int n)       generates n x n unimodular matrix with random entries.
 find_column_except_1_elt_generate_unit(matrix M)      gives position (i,j) such that all but (i,j)-th element of j-th column generate 1
 find_row_except_1_elt_generate_unit(matrix M)      gives position (i,j) such that all but (i,j)-th element of i-th row generate 1
+proc get_max_ideal_integers(ideal I,string s)       internal proc to compute max_id containing I over integers
+proc get_max_ideal_zero(ideal I,string s)       internal proc to compute max_id containing I over Q
+proc get_max_ideal_p(ideal I,string s)       internal proc to compute max_id containing I over field of char p
 
 
 // Main procedures
@@ -37,6 +40,7 @@ isomorphism_matrix_new_to_old(list lst_row_num_deleted, int n)      Gives isomor
 isomorphism_matrix_old_to_new(list lst_row_num_deleted, list lst_col_num_deleted, list lst_cols_deleted, int m)       Gives isomorphism from old module to new.
 Suslin_Lemma(poly f, poly g, int var_pos, int unit_pos)      Given f, g with g_(unit_pos) is a unit wrt var(var_pos) it returns a poly with this unit as a leadcoeff.
 is_local_unit(poly f, ideal max_id, int var_pos)         Checks if f is a unit in the localization wrt max_id of subring without var(var_pos) 
+get_max_ideal(ideal I, intvec v)            Returns a maximal ideal of the ring k[lst_vars] containing ideal I
 
 
 
@@ -47,6 +51,9 @@ is_local_unit(poly f, ideal max_id, int var_pos)         Checks if f is a unit i
 
 
 LIB "control.lib";
+LIB "primdec.lib";
+LIB "crypto.lib";               // To get the "next prime" in
+                                // get_max_ideal proc.
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -908,3 +915,277 @@ proc is_local_unit(poly f, ideal max_id, int var_pos)
 }
 
 
+////////////////////////////////////////////
+// Returns a maximal ideal of the ring k[lst_vars] containing the
+// ideal I. The list of variables is given as an intvec v such that
+// lst_vars[i] = var(v[i]).
+////////////////////////////////////////////
+
+proc get_max_ideal(ideal I, intvec v)
+{
+    int i,j;
+    string chr_str = charstr(basering);
+    string s, new_var_str;
+    
+    ideal max_id;
+    
+    
+    for(i=1;i<size(v);i++)
+    {
+        new_var_str = new_var_str + string(var(v[i])) + ", ";
+    }
+    if(i>2)
+    {
+        new_var_str = new_var_str + string(var(v[i]));
+    }
+    
+    if (find("integer",chr_str) != 0)
+    {
+        s = "ring tmp_ring_int = ("+chr_str+"), ("+new_var_str+"), ("+ordstr(basering)+")";
+        max_id = get_max_ideal_integers(I,s);
+    }
+    else
+    {
+        if(char(basering) == 0) // All fields of char 0
+        {
+            s = "ring tmp_ring_0 = ("+chr_str+"), ("+new_var_str+"), ("+ordstr(basering)+")";
+            max_id = get_max_ideal_char_zero(I,s);
+        }
+        else
+        {
+            s = "ring tmp_ring_p = ("+chr_str+"), ("+new_var_str+"), ("+ordstr(basering)+")";
+            max_id = get_max_ideal_char_p(I,s);
+        }
+    }
+    return(max_id);
+    
+}
+
+// This is an internal proc, not for public.
+//
+// ideal I is in the original ring; string s contains the string to be
+// executed to define a new ring.
+
+proc get_max_ideal_integers(ideal I,string s)
+{
+    def old_ring = basering;
+    
+    int i,c;
+    intvec vec_indep_var;
+    
+    execute(s);                 // This sets the basering to tmp_ring;
+    ideal indep_var_id;
+    
+    ideal new_I = fetch(old_ring,I);
+    ideal max_id;    
+    new_I = std(new_I);
+    ideal n;
+    int not_one = 0;
+    
+               
+    if (new_I == 0)
+    {
+        max_id = 2,maxideal(1);
+        setring(old_ring);
+        return(fetch(tmp_ring_int, max_id));
+    }
+
+    int prime_factor = 2;
+    int const_gen = 0;
+    list prime_list;
+    
+
+    for (i=1;i<=size(new_I);i++)
+    {
+        if (deg(new_I[i]) == 0) // i.e. i-th generator is an integer.
+        {
+            const_gen = new_I[i];            
+            break;
+        }
+    }
+    if(const_gen != 0)
+    {
+        prime_factor = primefactors(new_I[i])[1][1];
+    }
+    else
+    {
+        while(reduce(1,std(new_I,prime_factor)) == 0)
+        {
+            // prime_factor++;
+            prime_list=primList(2*prime_factor);
+            prime_factor = prime_list[1];
+        }
+    }
+
+    string str = "ring tmp_ring_p = ("+string(prime_factor)+"), ("+varstr(tmp_ring_int)+"), ("+ordstr(tmp_ring_int)+")";
+    max_id = get_max_ideal_char_p(new_I,str), prime_factor;
+    setring(old_ring);
+    ideal m = fetch(tmp_ring_int, max_id);
+    return(m);
+}
+
+
+
+
+// This is an internal proc, not for public.
+//
+// ideal I is in the original ring; string s contains the string to be
+// executed to define a new ring.
+
+proc get_max_ideal_char_zero(ideal I,string s)
+{
+    def old_ring = basering;
+        
+    int i,c;
+    intvec vec_indep_var;
+
+    execute(s);                 // This sets the basering to tmp_ring;
+    ideal indep_var_id;
+    
+    ideal new_I = fetch(old_ring,I);
+
+    ideal max_id;    
+    new_I = std(new_I);
+    ideal n;
+    int not_one = 0;
+    
+    if (new_I == 0)
+    {
+        max_id = maxideal(1);
+        setring(old_ring);
+        return(fetch(tmp_ring_0, max_id));
+    }
+    while (dim(std(new_I)) > 0)
+    {
+        vec_indep_var = indepSet(std(new_I));
+        
+        for (i=1;i<=nvars(basering);i++)
+        {
+            if(vec_indep_var[i] == 1)
+            {
+                indep_var_id = indep_var_id, var(i);
+            }
+        }
+
+        while (1)
+        {
+            n = new_I,indep_var_id;
+            if (reduce(1,std(n)) != 0)
+            {
+                not_one = 1;
+                break;
+            }
+            if(size(indep_var_id)>1)
+            {
+                indep_var_id = indep_var_id[1..size(indep_var_id)-1];
+            }
+        }
+        
+        if(not_one == 1)
+        {
+            new_I = n;
+        }
+        else
+        {
+            c=1;
+            while(reduce(1,std(new_I,indep_var_id[1]+c)) == 0)
+            {
+                c++;
+            }
+            new_I = std(new_I,indep_var_id[1]+c);
+        }
+    }
+
+    list min_ass_pr = minAssGTZ(new_I);
+    max_id = min_ass_pr[1];
+
+    setring(old_ring);
+    ideal m = fetch(tmp_ring_0, max_id);
+    return(m);
+}
+
+
+
+// This is an internal proc, not for public.
+//
+// ideal I is in the original ring; string s contains the string to be
+// executed to define a new ring.
+
+proc get_max_ideal_char_p(ideal I,string s)
+{
+    def old_ring = basering;
+        
+    int i,c,k;
+    intvec vec_indep_var;
+    
+    execute(s);                 // This sets the basering to tmp_ring;
+    ideal indep_var_id;
+    
+    ideal new_I = fetch(old_ring,I);
+
+    ideal max_id;    
+    new_I = std(new_I);
+    ideal n;
+    int not_one = 0;
+    
+
+    if (new_I == 0)
+    {
+        max_id = maxideal(1);
+        setring(old_ring);
+        return(fetch(tmp_ring_p, max_id));
+    }
+    while (dim(std(new_I)) > 0)
+    {
+        vec_indep_var = indepSet(std(new_I));
+        
+        for (i=1;i<=nvars(basering);i++)
+        {
+            if(vec_indep_var[i] == 1)
+            {
+                indep_var_id = indep_var_id, var(i);
+            }
+        }
+
+        while (1)
+        {
+            n = new_I,indep_var_id;
+            if (reduce(1,std(n)) != 0)
+            {
+                not_one = 1;
+                break;
+            }
+            if(size(indep_var_id)>1)
+            {
+                indep_var_id = indep_var_id[1..size(indep_var_id)-1];
+            }
+        }
+        
+        if(not_one == 1)
+        {
+            new_I = n;
+        }
+        else
+        {
+            c=1;
+            k=1;
+            while(reduce(1,std(new_I,indep_var_id[1]^k+c)) == 0)
+            {
+                c++;
+                if (c == char(basering))
+                {
+                    k++;
+                    c=0;
+                }
+            }
+            new_I = std(new_I,indep_var_id[1]+c);
+        }
+    }
+
+    list min_ass_pr = minAssGTZ(new_I);
+    max_id = min_ass_pr[1];
+
+    setring(old_ring);
+    ideal m = fetch(tmp_ring_p, max_id);
+    return(m);
+}
