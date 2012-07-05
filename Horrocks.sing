@@ -1,0 +1,263 @@
+LIB "Vinay.lib";
+
+
+///////////////////////////////////////////////////
+// INPUT: n x 1 unimodular (column) matrix and int var_pos such that
+// some entry in the column is monic wrt var(var_pos).
+//
+// Assumption: The given column is unimodular
+//
+// OUTPUT: ?????
+///////////////////////////////////////////////////
+
+proc Horrocks(matrix column, int var_pos, ideal max_id)
+{
+    int i,j,s,t,d;
+    int n = nrows(M);
+    matrix B;
+    poly var_poly = var(var_pos);
+    int monic_pos = 0;
+    
+    matrix completion[n][n];
+    matrix list_mat;
+    matrix W = unitmat(n);
+    poly tmp_poly;
+
+    intvec var_vec;
+    var_vec[nvars(basering)] = 0;
+    var_vec[var_pos] = 1;    
+    
+    list l;
+    matrix tmp_mat, tmp_mat2;
+    matrix E = unitmat(n);
+    int unit_containing_poly = 0;
+    int unit_coeff;
+    poly alpha,beta,tmp_poly;
+    
+    
+    monic_pos = find_monic_pos(column,var_pos);
+    
+    if (monic_pos == 0)
+    {
+        "Horrocks needs at least one element of the column to be monic.";
+        return(M,W);
+    }
+    
+    if (n == 1)
+    {
+        "The 1 x 1 matrix is invertible";
+        return(column);
+    }
+    if (n == 2)
+    {
+        lift_mat = lift(1,ideal(column));        
+        completion = column[1,1],column[2,1],-lift_mat[1,2],lift_mat[1,1];
+        "WHAT IS THE W MATRIX HERE???";
+        return(completion,W);
+    }
+ 
+// Swapping the 1st and monic_pos-th entries.  The matrix E
+// above is corresponding elementary matrix of this change.
+    tmp_poly = column[1,1];
+    column[1,1] = column[monic_pos,1];
+    column[monic_pos,1] = tmp_poly;
+// Now column[1,1] is monic.
+
+// Performing the same op on W.
+    E = permcol(E,1,monic_pos);
+    W = E * W;
+    
+    s = deg(column[1,1],var_vec);
+    if (s == 0)
+    {
+        // This means column[1,1] is 1 (already monic).
+        "need to send the full matrix M to complete cleanup with [column_pos, 1] as position of 1.";
+        "";
+    }
+    
+    for (i=2;i<=n;i++)
+    {
+// Reduce the degree of a_i's if higher than s = deg(a_1)
+        t = deg(column[i,1],var_vec);
+        E = unitmat(n);
+        
+        while (t >= s)
+        {
+            tmp_poly = lead_coeff_var(column[i,1],var_pos);
+            column[i,1] = column[i,1] - tmp_poly * var_poly^(t-s) * column[1,1];
+            E = addcol(E, 1, - tmp_poly * var_poly^(t-s), i);
+            W = E * W;
+            t = deg(column[i,1],var_vec);
+        }
+    }
+
+// Find first a_i, i>=2 such that a_i is not in mR. i.e. a_i is a unit
+// in the localization.
+    
+    for (i=2;i<=n;i++)
+    {
+        if (is_local_unit(column[i,1],max_id,var_pos) == 1)
+        {
+            unit_containing_poly = i;
+            break;
+        }
+    }
+    if (unit_containing_poly = 0)
+    {
+        "Something is wrong...";
+        "This means all a_i's are in mR, which implies a_1 is a unit, which is
+non-costant.";
+    }
+    tmp_mat = coeffs(column[unit_containing_poly,1], var_poly);
+    max_id = std(max_id);
+    
+    for(i=1;i<=size(tmp_mat);i++)
+    {
+        if (reduce(tmpmat[i,1],max_id) != 0)
+        {
+            unit_coeff = i-1;   // Suslin_Lemma needs coeff of y^i
+            break;
+        }
+    }
+
+    tmp_poly = column[2,1];
+    column[2,1] = column[unit_containing_poly,1];
+    column[unit_containing_poly,1] = tmp_poly;
+
+    E = permrow(E,2,unit_containing_poly);
+    W = E * W;
+    
+    
+// Now we are in Suslin Lemma situation.  f=column[1,1] is monic and g =
+// column[i,1] with unit_coeff-th coefficient to be a unit wrt max_id.
+    l = Suslin_Lemma(column[1,1], column[2,1], var_pos, unit_coeff);
+    
+
+// The following code ensures that column[2,1] is the smallest deg poly
+// among column[2..n,1].
+
+    for (i=2;i<=n;i++)
+    {
+        if (deg(column[i,1],var_vec) < deg(column[2,1],var_vec))
+        {
+            tmp_poly = column[2,1];
+            column[2,1] = column[i,1];
+            column[i,1] = tmp_poly;
+            
+            E = permrow(E,2,i);
+            W = E * W;
+        }
+    }
+
+// This will reduce the deg(f_3) and make is smaller than deg(f_1).
+    while (deg(column[3,1],var_vec) >= deg(column[1,1],var_vec))
+    {
+        tmp_poly = lead_coeff_var(column[3,1],var_pos);
+        column[3,1] = column[3,1] - tmp_poly * var_poly^(deg(column[3,1],var_vec) - deg(column[1,1],var_vec)) * column[1,1];
+        E = addcol(E, 1, -tmp_poly * var_poly^(deg(column[3,1],var_vec) - deg(column[1,1],var_vec)), 3);
+        W = E * W;
+    }
+
+// Recall the list l contains the return value from SuslinLemma.
+
+    if (deg(column[3,1],var_vec) >= deg(l[1],var_vec))
+    {
+        while (deg(column[3,1],var_vec) > deg(l[1],var_vec))
+        {
+            d = deg(column[3,1],var_vec) - deg(l[1],var_vec);
+            tmp_poly = lead_coeff_var(column[3,1],var_pos);
+            alpha = - tmp_poly * l[2] * var_poly^d;
+            beta  = - tmp_poly * l[3] * var_poly^d;
+            column[3,1] = column[3,1] - alpha*column[1,1] - beta*[1,2];
+
+            E = unitmat(n);
+            E[1,3] = -alpha;
+            E[2,3] = -beta;
+            W = E * W;
+        }
+
+        E = unitmat(2);
+        tmp_poly = lead_coeff_var(column[3,1],var_pos);
+        
+        
+        if (is_local_unit(tmp_poly + lead_coeff_var(l[1],var_pos), max_id, var_pos) == 1)
+        {
+            E[1,3] = l[2];
+            E[1,2] = l[3];
+        }
+        else
+        {
+            E[1,3] = 1 - tmp_poly * l[2];
+            E[1,2] = 1 - tmp_poly * l[3];
+        }
+        column = E * column;
+        W = E * W;    
+    }
+    else
+    {
+        E = unitmat(n);
+        E[1,3] = l[2];
+        E[2,3] = l[3];
+        tmp_mat2 = unitmat(n);
+        tmp_mat2 = permrow(tmp_mat2,1,3);
+        column =  tmp_mat2 * E * column;
+        W = tmp_mat2 * E * W;
+    }
+    
+    
+}
+
+
+///////////////////////////////////////////////////
+// INPUT: poly f, int var_pos
+//
+// OUTPUT: returns leading coeff of f wrt var(var_pos).
+///////////////////////////////////////////////////
+proc lead_coeff_var(poly f, int var_pos)
+{    
+    poly var_poly = var(var_pos);
+    matrix tmp_mat = coeffs(f,var_poly);
+    return(tmp_mat[size(tmp_mat),1]);
+}
+
+
+
+
+///////////////////////////////////////////////////
+// INPUT: n x 1 unimodular (column) matrix and int var_pos.
+//
+// OUTPUT: int i such that column[i,1] is monic wrt var(var_pos)
+///////////////////////////////////////////////////
+proc find_monic_poly(matrix column, int var_pos)
+{
+    int n = ncols(column);
+    int i;
+    int monic_pos = 0;
+    
+    matrix B;
+    
+
+    for (i=1;i<=n;i++)
+    {
+        B = coeffs(column[i,1],var(var_pos));
+        if (B[size(B),1] == 1)
+        {
+            monic_pos = i;
+            break;
+        }
+    }
+    return(monic_pos);
+}
+
+    
+
+///////////////////////////////////////////////////
+// INPUT: m x n unimodular matrix and int var_pos.
+//
+// This is wraper proc for horrocks. Calls horrocks with each column.
+//
+// OUTPUT: int i such that column[i,1] is monic wrt var(var_pos)
+///////////////////////////////////////////////////
+proc horrocks_main(matrix M, int var_pos)
+{
+    
