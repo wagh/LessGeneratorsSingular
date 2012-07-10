@@ -1,0 +1,160 @@
+LIB "Vinay.lib";
+
+////////////////////////////////////////////
+// The main proc for QS_Algorithm. 
+//
+// INPUT: m x n unimodule matrix M
+//
+// Assumption: 1. m < n (more columns than rows)
+// 2. M is unimodular
+//
+// OUTPUT: Matrix of transformation W.
+////////////////////////////////////////////
+proc QS_algorithm(matrix M)
+{
+    int m = nrows(M);
+    int n = ncols(M);
+    int i,j;
+    
+    matrix U,W,column;
+    U = unitmat(n);
+    W = U;
+    
+    
+    for (i=1;i<=n-1;i++)
+    {
+        if (i>1)
+        {
+            M = U * M;
+        }
+        column = submat(M,i..m,i);
+        U = qs_algorithm_column(column);
+        U = dsum(unitmat(i),W);
+        W = U * W;
+    }
+    return(W);
+}
+
+
+////////////////////////////////////////////
+// proc for QS_Algorithm applied to column
+//
+// INPUT: m x 1 unimodule (column) matrix M
+//
+// Assumption: M is unimodular
+////////////////////////////////////////////
+proc qs_algorithm_column(matrix column)
+{
+    
+    int m = nrows(column);
+    int i,j,var_pos,monic_pos;
+    list lst_local_W, lst_transformation_mat,local_soln;
+    matrix U1, final_mat;
+    ideal DENOM;
+    
+    
+
+    // var_pos = nvars(basering);  // Initialize var_pos to the last
+    //                             // variable.
+    
+    for (var_pos=1;var_pos<=nvars(basering);var_pos++)
+    {
+        monic_pos = find_monic_pos(column,var_pos);
+        if (monic_pos != 0)
+        {
+            break;
+        }
+        if(monic_pos == 0)
+        {
+            "need at least one poly in the column which is monic wrt at least one var.";
+            return(0);
+        }
+        local_soln = get_local_soln(column, var_pos);
+        lst_local_W = local_soln[1];
+        DENOM = local_soln[2];
+        U1 = patch(lst_local_W, var_pos, DENOM);
+        column = U1 * column;
+        lst_transformation_mat = insert(lst_transformation_mat,U1,size(lst_transformation_mat));
+    }
+
+    final_mat = unitmat(m);
+    
+    for(i=1;i<=size(lst_transformation_mat);i++)
+    {
+        final_mat lst_transformation_mat[i]*final_mat;
+    }
+    return(final_mat);
+}
+
+
+///////////////////////////////////////////////////
+// INPUT: n x 1 unimodular (column) matrix and int var_pos.
+//
+// OUTPUT: int i such that column[i,1] is monic wrt var(var_pos)
+///////////////////////////////////////////////////
+proc find_monic_poly(matrix column, int var_pos)
+{
+    int n = ncols(column);
+    int i;
+    int monic_pos = 0;
+    
+    matrix B;
+    
+
+    for (i=1;i<=n;i++)
+    {
+        B = coeffs(column[i,1],var(var_pos));
+        if (B[size(B),1] == 1)
+        {
+            monic_pos = i;
+            break;
+        }
+    }
+    return(monic_pos);
+}
+
+
+
+proc get_local_solution(matrix M, int var_pos)
+{
+    intvec v;
+    int i,j;
+    list l, horrocks_ret_val, loca_W;
+    ideal DENOM;
+    
+    for(i=1;i<=nvars(basering);i++)
+    {
+        if (i != var_pos)
+        {
+            v = v,i;
+        }
+    }
+    
+    ideal max_id = get_max_id (DENOM, v);
+    horrocks_ret_val = Horrocks(col,var_pos,max_id);
+    local_W = insert(local_W,horrocks_ret_val[1],size(local_W));
+    DENOM = DENOM, horrocks_ret_val[2];
+
+    
+    while (reduce(1,std(DENOM)) != 0)
+    {
+        max_id = get_max_id (DENOM, v);
+        horrocks_ret_val = Horrocks(col,var_pos,max_id);
+        local_W = insert(local_W,horrocks_ret_val[1],size(local_W));
+        DENOM = DENOM, horrocks_ret_val[2];
+    }
+    return(local_W, DENOM);
+}
+
+
+proc patch(list lst_local_W,int var_pos,ideal DENOM)
+{
+    int r = size(lst_local_W);
+    int i,j;
+    def bsr=basering;
+    execute("ring s="+charstr(basering)+",("+varstr(basering)+",@t),dp;");
+    
+
+    
+    
+    for (i=1;i<=r;i++)
