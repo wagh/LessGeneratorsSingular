@@ -1,0 +1,20 @@
+LIB "random.lib";
+
+< "/home/vvss/Downloads/git/LessGeneratorsSingular/myHom.sing";
+
+
+ring S = 0,(x,y,z),dp;
+poly f = sparsepoly(3);
+f = 3*x^3*y+x^4-5x*y*z^2+y^2*z^2;
+
+module SM = freemodule(1);
+
+
+intvec v = qhweight(f);
+// qring R = std(f);
+ideal I = jacob(f);
+I;
+Hom_with_gens(I,SM);
+
+"===================";
+Hom(I,SM);

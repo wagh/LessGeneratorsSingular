@@ -1,0 +1,8 @@
+proc get_rid_of_zero_rows(matrix M)
+{
+    int i,j;
+    int m = nrows(M);
+    int n = ncols(M);
+    for (i=1;i<=m;i++)\
+    {
+        

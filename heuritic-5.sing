@@ -1,0 +1,41 @@
+///////////////////////////////
+// Given a matrix M, this proc finds a column which has left inverse
+// containing a unit.
+//
+// Anna's thesis Heuristic 2.2.2(1)
+//
+// INPUT: Matrix M
+//
+// OUTPUT: int i, int j, matrix W such that i-th entry of a left
+// inverse of j-th column of M is a unit. W is the matrix of
+// transformation such that W*M has 1 in (i,j)-th position.
+///////////////////////////////
+proc column_having_left_inverse_containing_unit(matrix M)
+{
+    int m = nrows(M);
+    int n = ncols(M);
+    int i,j,k;
+    matrix ltInv[1][n];
+    matrix W = unitmat(n);
+    
+    
+    for (j=1;j<=n;j++)
+    {
+        ltInv = leftInverse(submat(M,1..m,j));
+        if (ltInv != 0)
+        {
+            for (i=1;i<=m;i++)
+            {
+                if (deg(ltInv[1,i]) == 0)
+                {
+                    for (k=1;k<=n;k++)
+                    {
+                        W[i,k] = ltInv[1,k];
+                    }
+                    return(i, j, W);
+                }
+            }
+        }
+    }
+    return("Matrix has no column having left inverse containing a unit.");
+}

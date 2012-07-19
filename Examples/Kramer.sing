@@ -1,0 +1,29 @@
+LIB "random.lib";
+LIB "hnoether.lib";
+
+
+ring R = 0,(x,y,z),dp;
+poly f = sparsepoly(1,5,75,5);
+
+link l = ":w Kramer.g";
+short=0;
+f;
+
+
+write(l,"homalgIOMode(\"D\");");
+
+write(l,"S := HomalgFieldOfRationalsInSingular( )  * \"x,y,z\";");
+
+write(l,"f := \""+string(f)+"\" / S;");
+write(l,"f;");
+write(l,"");
+
+write(l,"R := S / f;");
+write(l,"omega := KaehlerDifferentials ( R );");
+write(l,"Der := Hom( omega );");
+write(l,"Der;");
+write(l,"");
+write(l,"ByASmallerPresentation( Der );");
+
+close(l);
+$

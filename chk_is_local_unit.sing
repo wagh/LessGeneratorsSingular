@@ -1,0 +1,52 @@
+////////////////////////////////////////////////////
+// INPUT: poly f, maximal id max_id and int var_pos such that max_id
+// is maximal in the subring without the variable var(var_pos).
+//
+// OUTPUT: 1 if f is a unit in the localization of this subring wrt
+// the given max ideal, 0 otherwise.
+//
+// ASSUMPTION: 1. max_id is maximal in the above mentioned subring.
+// 2. f is an element in this subring.
+// 3. The original ring has AT_LEAST 2 variable... (NEED TO CHANGE THIS LATER)
+////////////////////////////////////////////////////
+proc is_local_unit(poly f, ideal max_id, int var_pos)
+{
+    string old_ring_name = nameof(basering);
+
+    int i,j;
+    string new_var_str;
+    int n = nvars(basering);
+    
+    for (i=1;i<n;i++) // Special for the last var.
+    {
+        if (i != var_pos)
+        {
+            new_var_str = new_var_str + string(var(i))+", ";
+        }
+    }
+    if (var_pos != n)
+    {
+        new_var_str = new_var_str + string(var(n));
+    }
+    
+    execute("ring tmpR = ("+charstr(basering)+"),("+new_var_str+"),("+ordstr(basering)+")");
+    execute("poly f = imap("+old_ring_name+",f)");
+    execute("ideal m = imap("+old_ring_name+",max_id)");
+
+    m = std(m);
+    if (reduce(f,m) != 0)
+    {
+        return(1);
+    }
+    else
+    {
+        return(0);
+    }
+}
+
+ring R = 0,(x,y,z,w,t),dp;
+poly f = 1-xy5+x2y3+4xy4+x2y2;
+ideal I = x,y,z,t;
+
+is_local_unit(f,I,4);
+

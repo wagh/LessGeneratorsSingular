@@ -1,0 +1,99 @@
+< "heuritic-3.sing";
+
+proc cleanup(matrix M, int p, int q)
+{
+    "Inside cleanup()..................";
+    
+    int m = nrows(M);
+    int n = ncols(M);
+    int i,j;
+    matrix MM[m-1][n-1];
+    list tmp_list;
+    intvec tmp_vec,r,c;
+    matrix e[1][1];
+    
+    e = 1/M[p,q];
+
+    tmp_vec = 1..m;
+    tmp_list = list(tmp_vec[1..size(tmp_vec)]);
+    tmp_list = delete(tmp_list,p);
+    
+
+    for (i=1;i<=size(tmp_list);i++)
+    {
+        r[i]=tmp_list[i];
+    }
+
+    tmp_vec = 1..n;
+    tmp_list = list(tmp_vec[1..size(tmp_vec)]);
+    tmp_list = delete(tmp_list,q);
+
+    for (i=1;i<=size(tmp_list);i++)
+    {
+        c[i]=tmp_list[i];
+    }
+    
+    matrix pivotCol[m-1][1] = submat(M,r,q);
+    matrix pivotRow[1][n-1] = submat(M,p,c);
+
+    // MM = submat(M,r,c) - 1/M[p,q]*submat(M,r,q)*submat(M,p,c);
+
+    // Changed this to cater the non-commutative case.
+    // MM = submat(M,r,c) - 1/M[p,q]*pivotCol*pivotRow;
+    MM = submat(M,r,c) - pivotCol*e*pivotRow;
+    MM;
+    
+    return(MM, 1/M[p,q]*pivotCol, 1/M[p,q]*pivotRow);    
+    // return(MM);
+}
+
+
+// LIB "Vinay.lib";
+
+
+
+ring R = 0,(x,y,z),dp;
+int n = 5;
+matrix M = generate_random_unimod_matrix(n);
+// M = 5x2+4y2+z2+10x+8y+6z+22,2xy+3xz+3z2+5x+22y+13z+28,6x2+3z2+14x+12z+17,3yz+16x+9y+2z+22,6z+18,2xy+3xz+3z2+5x+22y+13z+28,y2+18z2+2y+24z+111,3xy+9z2+3x+2y+24z+17,9yz+11y+6z+10,18z+6,6x2+3z2+14x+12z+17,3xy+9z2+3x+2y+24z+17,9x2+9z2+12x+18z+29,9yz+24x+9y+6z+22,18z+18,3yz+16x+9y+2z+22,9yz+11y+6z+10,9yz+24x+9y+6z+22,9y2+12y+68,18y+12,6z+18,18z+6,18z+18,18y+12,36;
+M = permcol(M,1,2);
+M = permrow(M,2,5);
+M;
+"";
+
+
+list ij = find_row_except_1_elt_generate_unit(M);
+if (size(ij) != 1)
+{
+    matrix W = row_except_1_elt_generate_unit(M, ij[1], ij[2], ij[3]);
+    matrix MW = M*W;
+    MW;
+    "";
+
+    // (ij[1],ij[1])-th enty of MW is always 1.
+    list MW_cleanup_lst = cleanup(MW, ij[1], ij[1]);
+    "----------------";
+    
+        // MW_cleanup_lst[1];
+    matrix MW_cleanup = MW_cleanup_lst[1];
+    
+    "MW_cleanup=";
+    print(MW_cleanup);
+//    size_matrix(MW_cleanup);
+
+    
+    
+// list ij = find_column_except_1_elt_generate_unit(M);
+// matrix W = column_except_1_elt_generate_unit(M, ij[1], ij[2], ij[3]);
+// "W=";
+// print(W);
+
+// "W*M";
+// print(W*M);
+}
+else
+{
+    ij[1];
+}
+
+    

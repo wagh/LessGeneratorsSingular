@@ -1,0 +1,84 @@
+///////////////////////////////
+// Given a matrix M, this proc tests for all heuristics
+//
+// INPUT: Matrix M
+//
+// OUTPUT: W is the matrix of transformation such that W*M has 1 in
+// (i,j)-th position.
+///////////////////////////////
+proc apply_heuristics(matrix M)
+{
+    int m = nrows(M);
+    int n = ncols(M);
+    int i,j,k;
+    matrix W = unitmat(n);
+    list l, ij;
+    int MAT_CHANGED;
+    
+
+    while (1)
+    {
+        MAT_CHANGED = 0;
+
+        if (m-n==1)
+        {
+            "In Cauchy Binet";
+            matrix ltInv[n][m] = leftInverse(M);
+            matrix CBRow[1][m] = CauchyBinetRow(M);
+            CBRow;
+            "";
+            ltInv;
+            "";
+            matrix B[m][m] = transpose((concat(transpose(ltInv),transpose(CBRow))));
+            M = rightInverse(B);
+                // print(M);
+            "";
+            l = complete_cleanup(M);
+            if (size(l) != 1)
+            {
+                M =l[1];
+            }
+            print(M);
+            "";
+            MAT_CHANGED = 1;
+        }
+    
+        l = column_having_left_inverse_containing_unit(M);
+        if (size(l) != 1)
+        {
+            "In column_having_left_inverse_containing_unit";
+        
+            W = l[3];
+            "W is ready";
+            matrix WM = W*M;
+            print(WM);
+        
+            l = complete_cleanup(WM);
+            M = l[1];
+            MAT_CHANGED = 1;
+        }
+
+        l = find_column_except_1_elt_generate_unit(M);
+        if (size(l) != 1)
+        {
+            "In find_column_except_1_elt_generate_unit...";
+        
+            W = column_except_1_elt_generate_unit(M,l[1],l[2],l[3]);
+            "W is ready";
+            matrix WM = W*M;
+            print(WM);
+        
+            l = complete_cleanup(WM);
+            M = l[1];
+            MAT_CHANGED = 1;
+        }
+        if (MAT_CHANGED == 0)
+        {
+            break;
+        }
+    }
+    
+    return(M);
+}
+
+

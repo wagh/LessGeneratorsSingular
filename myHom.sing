@@ -1,0 +1,103 @@
+LIB "homolog.lib";
+
+proc Hom_with_gens (module M, module N)
+"USAGE:   Hom(M,N);  M,N=modules
+COMPUTE: A presentation of Hom(M',N'), M'=coker(M), N'=coker(N) as follows:
+         let
+@example
+   F1 --M-> F0 -->M' --> 0,    G1 --N-> G0 --> N' --> 0
+@end example
+         be presentations of M' and N'. Consider
+@example
+                                  0               0
+                                  |^              |^
+       0 --> Hom(M',N') ----> Hom(F0,N') ----> Hom(F1,N')
+                                  |^              |^
+  (A:  induced by M)          Hom(F0,G0) --A-> Hom(F1,G0)
+                                  |^              |^
+  (B,C:induced by N)              |C              |B
+                              Hom(F0,G1) ----> Hom(F1,G1)
+
+@end example
+         Let D=modulo(A,B) and Hom=modulo(D,C), then we have exact sequences
+@example
+   R^p  --D-> Hom(F0,G0) --A-> Hom(F1,G0)/im(B),
+
+ R^q -Hom-> R^p --D-> Hom(F0,G0)/im(C) --A-> Hom(F1,G0)/im(B).
+@end example
+         Hence Hom presents Hom(M',N')
+RETURN:  @* module Hom, a presentation of Hom(M',N')
+         @* module D, module of generators of Hom(M',N') 
+@format
+           - l[1] = Hom
+           - l[2] = generators of Hom, i.e. the module D
+@end format
+DISPLAY: printlevel >=0: (affine) dimension of Hom  (default)
+@*       printlevel >=1: D and C and kbase of coker(Hom) in Hom(F0,G0)
+@*       printlevel >=2: elements of kbase of coker(Hom) as matrix :F0-->G0
+NOTE:    DISPLAY is as described only for a direct call of 'Hom'. Calling 'Hom'
+         from another proc has the same effect as decreasing printlevel by 1.
+EXAMPLE: example Hom;  shows examples
+"
+{
+//---------- initialisation ---------------------------------------------------
+  int l,p,di;
+  matrix kb;
+  module A,B,C,D,homMN,homMN0;
+  list L;
+//---------- computation of Hom -----------------------------------------------
+  B = kohom(N,ncols(M));
+  A = kontrahom(M,nrows(N));
+  print(A);
+  "";
+  print(B);
+  "";
+  
+  C = kohom(N,nrows(M));
+  print(C);
+  "";
+
+  D = modulo(A,B);
+  homMN = modulo(D,C);
+  homMN0= std(homMN);
+  p = printlevel-voice+3;       // p=printlevel+1 (default: p=1)
+  di= dim(homMN0);
+  dbprint(p,"// dimension of Hom:  "+string(di));
+  if (di==0)
+  {
+    dbprint(p,"// vdim of Hom:       "+string(vdim(homMN0)));
+  }
+  dbprint(p,"");
+  dbprint(p-1,
+   "// given  F1 --M-> F0 -->M'--> 0 and  G1 --N-> G0 -->N'--> 0,",
+   "// show D = ker( Hom(F0,G0) --> Hom(F1,G0)/im(Hom(F1,G1)->Hom(F1,G0)) )",D,
+   "// show C = im ( Hom(F0,G1) --> Hom(F0,G0) )",C,"");
+  return(homMN, D);
+}
+example
+{"EXAMPLE:";  echo = 2;
+  int p     = printlevel;
+  printlevel= 1;   //in 'example proc' printlevel has to be increased by 1
+  ring r    = 0,(x,y),dp;
+  ideal i   = x2-y3,xy;
+  qring q   = std(i);
+  ideal i   = fetch(r,i);
+  module M  = [-x,y],[-y2,x],[x3];
+  module H  = Hom(M,i);
+  print(H);
+
+  printlevel= 2;
+  list L    = Hom(M,i,1);"";
+
+  printlevel=1;
+  ring s    = 3,(x,y,z),(c,dp);
+  ideal i   = jacob(ideal(x2+y5+z4));
+  qring rq=std(i);
+  matrix M[2][2]=xy,x3,5y,4z,x2;
+  matrix N[3][2]=x2,x,y3,3xz,x2z,z;
+  print(M);
+  print(N);
+  list l=Hom(M,N,1);
+  printlevel = p;
+}
+///////////////////////////////////////////////////////////////////////////////

@@ -147,14 +147,101 @@ proc get_local_solution(matrix M, int var_pos)
 }
 
 
+proc common_denom_mat(matrix M)
+{
+    int i,j;
+    int m = nrows(M);
+    int n = ncols(M);
+    poly tmp_poly, lcm_poly;
+    ideal common_denom;
+    
+    
+    for (i=1;i<=m;i++)
+    {
+        for (j=1;j<=m;j++)
+        {
+            common_denom = lcm(common_denom, leadcoef(cleardenom(M[i,j]))/leadcoef(M[i.j]));
+        }
+    }
+    return(common_denom);
+}
+
+            
+
+
 proc patch(list lst_local_W,int var_pos,ideal DENOM)
 {
     int r = size(lst_local_W);
     int i,j;
     def bsr=basering;
-    execute("ring s="+charstr(basering)+",("+varstr(basering)+",@t),dp;");
+    ideal m = maxideal(1);
+    string s;
+    s = "ring new_ring = ("+charstr(bsr)+",";
     
+    for (i=1;i<nvars(bsr);i++)
+    {
+        if(i != var_pos);
+        {
+            s = s + string(var(i))+",";
+        }
+    }
+    if (i!=var_pos)
+    {
+        s = s + ")";
+    }
+    s = s + ",(" + string(var(var_pos)) + ",@t),("+ordstr(bsr)+")";
+    execute(s);
+        // execute("ring s="+charstr(basering)+",("+varstr(basering)+",@t),dp;");
 
+    ideal m = imap(bsr,m);
+    m[var_pos] = var(var_pos) + @t;
+    map phi = bsr, m;
+
+    list lst_local_W = imap(bsr, lst_local_W);
+    ideal DENOM = phi(DENOM);
+
+    ideal delta_list, denom_list;
     
     
     for (i=1;i<=r;i++)
+    {
+        lst_inv_mat[i] = inverse(lst_local_W[i]);
+        delta_list[i] = lst_local_W[i], phi(lst_inv_mat[i]);
+        denom_list[i] = common_denom_mat(delta_list[i]);
+    }
+    
+    if (r == 1)
+    {
+        matrix rtinv_denom[1][1] = 1/denom_list[1];
+    }
+    else
+    {
+        matrix rtinv_denom [size(denom_list)][1] = rightInverse(denom_list);
+    }
+    m = maxideal(1);
+    m[size(m)] = -var(var_pos) * denom_list[1] * rtinv_denom[1];
+    map psi = new_ring, m;
+    poly Y = var(var_pos);
+    
+    matrix V = psi(delta_list[1]);
+// U = W[1] * sub( inv[1],  {X |--> (X - X*(g_(0,0)) * (denom_list[1]))} );
+
+
+    for(i=2;i<=r;i++)
+    {
+        Y = Y - denom_list[i-1]*rtinv_denom[i-1]*var(var_pos);
+        m = maxideal(1);
+        m[var_pos] = Y;
+        m[size(m)] = - denom_list[i]*rtinv_denom[i]*var(var_pos);
+        psi = new_ring,m;
+        V[i] = psi(delta_list[i]);
+    }
+    setring(bsr);
+    
+    return(V);
+}
+
+
+        
+
+            

@@ -1,0 +1,53 @@
+< "../SuslinLemmaGAP.sing";
+LIB "control.lib";
+
+ring R = 0,(x,y),dp;
+poly f = y^6 +sparsepoly(2,4,75,5);
+poly g = sparsepoly(2,6,75,5);
+
+/////////////////////////////////
+// The example on which Anna's code was tested.
+// poly f = x2y4+23xy5+y6+7x-y2;
+// poly g = y2*(4xy2+x2+x2y-xy3);
+/////////////////////////////////
+
+
+"f=",f;
+"g=",g;
+"";
+
+int var_pos = 2;
+poly var_poly = var(var_pos);
+
+
+coeffs(g,var_poly);
+"";
+
+intvec v;
+v[nvars(basering)] = 0;
+v[var_pos] = 1;
+
+list l;
+matrix A;
+
+
+for (int i=0;i<=deg(g,v)+1;i++)
+{
+    "iteration = ",i;
+    l = Suslin_Lemma_from_GAP(f,g,var_pos,i);
+
+    "poly g' = ",l[1];
+    A = coeffs(l[1],var(var_pos));
+    "leading coeff of the new poly = ",A[size(A),1];
+    "poly cp = ",l[2];
+    "poly cq = ",l[3];
+    "............................................";
+}
+
+// list l = Suslin_Lemma_from_GAP(f,g,2,1);
+// "poly g' = ",coeffs(l[1],var(2));
+// "";
+// "poly cp = ",l[2];
+// "";
+// "poly cq = ",l[3];
+// "";

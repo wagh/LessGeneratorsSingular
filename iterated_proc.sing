@@ -1,0 +1,32 @@
+proc B(ideal I, string s)
+{
+    def old_ring_name = basering;
+    execute(s);                 // Define new ring.    
+    ideal new_I = fetch(old_ring_name,I);
+    new_I = new_I^2;                  // Some Qdummy computations on I
+    setring(old_ring_name);
+    return(fetch(tmp_ring_B, new_I));
+}
+
+    
+proc A(ideal I, string s)
+{
+    def old_ring_name = basering;
+    execute(s);                 // Define new ring.    
+    ideal new_I = fetch(old_ring_name,I);
+    string s = "ring tmp_ring_B = ("+charstr(basering)+"), ("+varstr(basering)+",s"+"), ("+ordstr(basering)+")";
+    ideal J = B(new_I,s);
+    setring(old_ring_name);
+    return(fetch(tmp_ring_A, new_I));
+}
+
+TRACE = 3;
+
+ring R = 0,(x,y,z),dp;
+poly f = 3x5+x4+x3;
+poly g = 4x3+3x2;
+
+ideal I = f,g;
+
+string s = "ring tmp_ring_A = ("+charstr(basering)+"), ("+varstr(basering)+",t"+"), ("+ordstr(basering)+")";
+A(I,s);

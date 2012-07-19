@@ -1,0 +1,59 @@
+///////////////////////////////
+// Given a matrix M, this proc finds a column which has left inverse
+// containing a unit.
+//
+// Anna's thesis Heuristic 2.2.2(1)
+//
+// INPUT: Matrix M
+//
+// OUTPUT: int i, int j, matrix W such that i-th entry of a left
+// inverse of j-th column of M is a unit. W is the matrix of
+// transformation such that W*M has 1 in (i,j)-th position.
+///////////////////////////////
+proc two_in_a_column_having_left_inverse_containing_unit(matrix M)
+{
+    int m = nrows(M);
+    int n = ncols(M);
+    int i,j,k;
+    matrix ltInv[1][n];
+    matrix W = unitmat(n);
+    
+
+    list l = row_having_right_inverse_containing_unit(M);
+    int i,j;
+    int m;
+
+
+    if (size(l) != 1)
+    {
+        matrix W = l[3];
+        m = nrows(W);
+        matrix WW = W;
+    }
+    
+}
+
+ring R=0,(x,y,z),dp;
+int n = 5;
+matrix M = generate_random_unimod_matrix(n);
+
+for (i=1;i<=m;i++)
+{
+    rtInv = rightInverse(submat(M,i,1..n));
+    if (rtInv != 0)
+    {
+        for (j=1;j<=n;j++)
+        {
+            if (......)
+            {
+                for (k=1;k<=m;k++)
+                {
+                    W[k,j] = rtInv[k,1];
+                }
+                return(i, j, W);
+            }
+        }
+
+        two_in_a_column_having_left_inverse_containing_unit(M);
+    }
+}

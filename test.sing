@@ -1,0 +1,30 @@
+proc proc1(ideal I)
+{
+    def RS = basering;
+
+    ring R1 = 0,x,dp;
+    ideal I1 = fetch(RS,I);
+    I1 = I1,x^10;
+    "==";
+    
+    setring(RS);
+    return(fetch(R1,I1));
+}
+
+proc proc2(ideal I)
+{
+    def RR = basering;
+    
+    ring R2 = 0,x,dp;
+    ideal I2 = fetch(RR,I);
+    I2 = proc1(I2),x-1;
+    I2;
+    
+    setring(RR);
+    return(fetch(R2,I2));
+}
+
+
+ring R = 0,x,dp;
+ideal I = x6+x3-x2+8;
+proc2(I);

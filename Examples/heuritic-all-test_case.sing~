@@ -1,0 +1,6 @@
+ring R = 0,(x,y,z),dp;
+int n = 5;
+matrix M = generate_random_unimod_matrix(n);
+
+< "/home/vvss/Downloads/git/LessGeneratorsSingular/heuritic-all.sing";
+apply_heuristics(M);
