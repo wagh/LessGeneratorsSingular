@@ -1,12 +1,12 @@
 ///////////////////////////////////////////////////////////////////////////////
-version="$Id: vinay.lib 0001 2012-06-11 16:00:00Z VInay $";
+version="$Id: vinay.lib 0001 2013-07-23 16:00:00Z VInay $";
 category = "";
 info="
-LIBRARY:  Vinay.lib   Loads  vinay.lib libraries (commutative case)
+LIBRARY:  LessGenerator.lib   Loads  LessGenerator.lib libraries (commutative case)
 
 use: help Singular libraries; for a list of the libraries
 
-AUTHORS:  VInay Wagh,         	  vinay_wagh@yahoo.com
+AUTHORS:  VInay Wagh,         	  waghoba@gmail.com
 @*        Mohmmed Barakat,        barakat@mathematik.uni-kl.de
 
 
@@ -16,7 +16,7 @@ row_completion_for_coprime_pair(matrix M, int i, int j, int k)      two elements
 column_except_1_elt_generate_unit(M, i, j, column_ideal)       Matrix W s.t. W*M has 1 in (i,j)-th position
 row_except_1_elt_generate_unit(M, i, j, column_ideal)       Matrix W s.t. W*M has 1 in (i,j)-th position
 column_having_left_inverse_containing_unit(matrix M)        finds a column which has left inverse containing a unit.
-row_having_left_inverse_containing_unit(matrix M)        finds a row which has right inverse containing a unit.
+row_having_right_inverse_containing_unit(matrix M)        finds a row which has right inverse containing a unit.
 
 
 // Tools
@@ -41,11 +41,6 @@ isomorphism_matrix_old_to_new(list lst_row_num_deleted, list lst_col_num_deleted
 Suslin_Lemma(poly f, poly g, int var_pos, int unit_pos)      Given f, g with g_(unit_pos) is a unit wrt var(var_pos) it returns a poly with this unit as a leadcoeff.
 is_local_unit(poly f, ideal max_id, int var_pos)         Checks if f is a unit in the localization wrt max_id of subring without var(var_pos) 
 get_max_ideal(ideal I, intvec v)            Returns a maximal ideal of the ring k[lst_vars] containing ideal I
-
-
-
-
-
 
 ";
 
